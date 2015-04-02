@@ -1,0 +1,1103 @@
+package outline;
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.font.TextAttribute;
+import java.util.ArrayList;
+import java.util.Map;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+
+/**
+ *  Personal organiser that stores contacts and keeps a to-do list
+    Copyright (C) <2015>  <David Roussov>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    @author David Roussov
+ */
+public class PersonalOrganiserGUI {	
+	JFrame frame; // main frame for the application
+	
+	JMenu menu, menuHelp; // the two different menu sections
+	JMenuItem menuItemExit, menuItemManual; // menu items
+	JPanel panel, options; // main panel for application, and the second horizontal menu bar, respectively
+	
+	// panels for 'contacts'
+	JPanel subOptionsContacts, outputContacts, deleteContacts, editContacts, confirmationPanel;
+	
+	// panels for 'To Do'
+	JPanel subOptionsToDo, outputList, deleteItems, editItems;
+	
+	// main menu bar buttons
+	JButton buttonContacts, buttonToDo;
+	
+	// sub menu bar buttons for contacts
+	JButton addContact, removeContact, deleteButton, editContact, editButton, findDuplicates;
+	
+	// sub menu bar buttons for 'to do'
+	JButton addItemToDo, removeItemToDo, editItemToDo;
+	
+	// storing changed contact details before sending data to database
+	ArrayList<JTextField> changingContactDetails = new ArrayList<JTextField>();
+	// storing changed contact details before sending data to database
+	ArrayList<JTextField> changingToDoDetails = new ArrayList<JTextField>();
+	
+	// store to-do list JLabels for highlighting functionality
+	ArrayList<JLabel> highlightingToDoList = new ArrayList<JLabel>();
+	
+	// checking if various aspects of the application are displayed
+	private boolean checkContactsBar = false;
+	private boolean checkToDoBar = false;
+	private boolean checkDisplayContacts = false;
+	private boolean checkDisplayToDo = false;
+	
+	// the font for the menu options
+	Font fontForMenu = new Font("Helsinki", Font.BOLD, 12);
+	
+	// the color for the background of the main output area
+	Color colorOutputBackground = new Color(230,230,250);
+	
+	// the names of all the attributes stored in the 'people' table besides the primary key
+	private String[] peopleAttributesArray = new PersonalOrganiserData().peopleAttributes;
+	
+	// number of attributes for the 'people' database excluding the primary key,
+	private int peopleAttributes = peopleAttributesArray.length;
+	
+	public static void main(String[] args) {
+		new PersonalOrganiserGUI();
+	}
+	
+	/**
+	 * Constructor that initializes the GUI and outputs the main menu bar
+	 */
+	public PersonalOrganiserGUI() {
+		
+		frame = new JFrame();
+		
+		ListenForKey keyListener = new ListenForKey();
+		frame.setFocusable(true);
+		frame.addKeyListener(keyListener);
+		
+		frame.setSize(1000,600);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setLocationRelativeTo(null);
+		frame.setTitle("Personal organiser");
+		frame.getContentPane().setBackground(colorOutputBackground);
+		
+		frame.setLayout(new BorderLayout());
+		
+     	createMenuBar(); // create standard menu bar
+		
+		panel = new JPanel();
+		panel.setBackground(new Color(169,169,169));
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		
+		options = new JPanel();
+		options.setName("optionsPanel");
+		options.setBackground(new Color(169,169,169));
+		
+		ListenForMouse mouseListener = new ListenForMouse();
+		ListenToAction actionListener = new ListenToAction();
+		
+		// button for contacts
+		buttonContacts = styleMainMenuButtons("Contacts");
+		buttonContacts.setFocusable(false);
+		buttonContacts.addMouseListener(mouseListener);
+		buttonContacts.addActionListener(actionListener);
+		
+		options.add(buttonContacts);
+		
+		// button for todo list
+		buttonToDo = styleMainMenuButtons("To do");
+		buttonToDo.setFocusable(false);
+		buttonToDo.addMouseListener(mouseListener);
+		buttonToDo.addActionListener(actionListener);
+		
+		options.add(buttonToDo);
+		
+		options.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+		options.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+		panel.add(options);
+		
+		frame.add(panel, BorderLayout.NORTH);
+		frame.setVisible(true);
+	}
+
+	/**
+	 * This method creates a standard menu at the top of the window 
+	 */
+	public void createMenuBar() {
+		ListenToAction menuListener = new ListenToAction();
+		
+		JMenuBar bar =  new JMenuBar();
+     	
+     	menu = new JMenu("File");
+     	bar.add(menu);
+     	
+     	menuItemExit = new JMenuItem("Exit");
+     	menu.add(menuItemExit);
+     	menuItemExit.addActionListener(menuListener);
+     	
+     	menuHelp = new JMenu("Help");
+     	bar.add(menuHelp);
+     	
+     	menuItemManual = new JMenuItem("Manual");
+     	menuHelp.add(menuItemManual);
+     	menuItemManual.addActionListener(menuListener);
+     	frame.setJMenuBar(bar);
+	}
+
+	/**
+	 * Once an item to be removed is chosen and the corresponding button is clicked,
+	 * this method identifies the nth button clicked and sends that number to
+	 * PersonalOrganiserData to then delete it from the 'todo' table
+	 * @param buttonName the name of the button the user clicked
+	 */
+	public void removeItemToDoDatabase(String buttonName) {
+		int buttonIndex = Character.getNumericValue(buttonName.charAt(buttonName.length() - 1)) + 1;
+		new PersonalOrganiserData().deleteItemToDo(buttonIndex);
+		deleteItems.setVisible(false);
+		removeItemToDo.doClick();
+	}
+	
+	/**
+	 * This method determines the nth button pressed (from the top) and then
+	 * loops through an ArrayList consisting of all the rows and columns until
+	 * it finds the corresponding JTextField. It then gets that text and the number
+	 * of the button and sends that to PersonalOrganiserData to then update the database.
+	 * @param buttonName the name of the button the user clicked
+	 */
+	public void editItemToDoDatabase(String buttonName) {
+		int buttonIndex = Character.getNumericValue(buttonName.charAt(buttonName.length() - 1)) + 1;
+		int counter = 0;
+		for (int i = 0; i < changingToDoDetails.size(); i += 1) {
+			counter++;
+			if (counter == buttonIndex) {
+				String newActivity = changingToDoDetails.get(i).getText();
+				
+				new PersonalOrganiserData().updateItemToDo(buttonIndex, newActivity);
+				changingToDoDetails = new ArrayList<JTextField>();
+			}
+		}
+		editItems.setVisible(false);
+		editItemToDo.doClick();
+	}
+	
+	/**
+	 * Once the name of the button is determined, its order is known and this number
+	 * is sent to the PersonalOrganiserData class to then remove the contact with that
+	 * number (i.e., id)
+	 * @param buttonName the name of the button the user clicked
+	 */
+	public void deleteContactDatabase(String buttonName) {
+		int buttonIndex = Character.getNumericValue(buttonName.charAt(buttonName.length() - 1)) / peopleAttributes + 1;
+		new PersonalOrganiserData().deletePerson(buttonIndex); // delete person from database
+		deleteContacts.setVisible(false);
+		removeContact.doClick();
+	}
+	
+	/**
+	 * This method loops through an ArrayList of JTextFields consisting of all the
+	 * rows and columns of contact data until the corresponding id is found (that's 
+	 * inside the buttonName string), it then gets the text and sends the id and text
+	 * to PersonalOrganiserData to then update the database
+	 * @param buttonName a string that contains the id of the row
+	 */
+	public void editContactDatabase(String buttonName) {
+		int buttonIndex = Character.getNumericValue(buttonName.charAt(buttonName.length() - 1)) / peopleAttributes + 1;
+		int counter = 0;
+		String[] allInput = new String[peopleAttributes];
+		for (int i = 0; i < changingContactDetails.size(); i += peopleAttributes) {
+			counter++;
+			if (counter == buttonIndex) {
+				for (int j = 0; j < peopleAttributes; j++) {
+					allInput[j] = changingContactDetails.get(i + j).getText();
+				}
+				new PersonalOrganiserData().updateContact(buttonIndex, allInput);
+				changingContactDetails = new ArrayList<JTextField>();
+			}
+		}
+		editContacts.setVisible(false);
+		editContact.doClick();
+	}
+	
+	/**
+	 * Once a user clicks the 'Add contact' button this method is called
+	 * and it creates a popup consisting of all the fields a database has for
+	 * the user to input the details of a new contact.
+	 */
+	public void displayAddContact() {
+		clearOutput();
+		
+		ArrayList<JTextField> userInput = new ArrayList<JTextField>();
+		
+		JPanel addContactsPanel = new JPanel(new GridLayout(0, 1));
+		for (int i = 0; i < peopleAttributesArray.length; i++) {
+			JTextField attributeField = new JTextField();
+			userInput.add(attributeField);
+			JLabel attributeName = new JLabel("Enter " + peopleAttributesArray[i] + ":");
+			addContactsPanel.add(attributeName);
+			addContactsPanel.add(attributeField);
+		}
+		int result = JOptionPane.showConfirmDialog(null, addContactsPanel, "Add a contact",
+				JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+		if (result == JOptionPane.OK_OPTION) {
+			String[] userInputText = new String[userInput.size()];
+			for (int i = 0; i < userInputText.length; i++) {
+				userInputText[i] = userInput.get(i).getText();
+			}
+			new PersonalOrganiserData().addContact(userInputText);
+		}
+		
+		outputContactsInfo();
+	}
+	
+	/**
+	 * When a user clicks the 'Remove contacts' button, this method is called
+	 * and it re-outputs all the contact data but along with a 'delete' button
+	 * a user can click to delete the corresponding contact
+	 */
+	public void displayDeleteContact() {
+		clearOutput();
+		
+		String[] allContacts = new PersonalOrganiserData().selectAllContacts();
+
+		int numberOfRows = allContacts.length / peopleAttributes + 1;
+		
+		deleteContacts = new JPanel(new GridLayout(numberOfRows,3));
+		deleteContacts.setName("deleteContactsPanel");
+		deleteContacts.setBackground(new Color(230,230,250));
+		deleteContacts.setBorder(new EmptyBorder(10, 10, 10, 10) ); // padding
+		
+		Font fontForOutput = new Font("Helsinki", Font.PLAIN, 14);
+		Font fontForTitles = new Font("Helsinki", Font.BOLD, 16);
+		
+		for (int i = 0; i < peopleAttributes; i++) {
+			JLabel title = new JLabel(makeGrammaticalAttribute(peopleAttributesArray[i]));
+			title.setFont(fontForTitles);
+			deleteContacts.add(title);
+		}
+		
+		deleteContacts.add(new JLabel());
+		
+		for (int i = 0; i < allContacts.length; i += peopleAttributes) {
+			for (int j = 0; j < peopleAttributes; j++) {
+				JLabel label = new JLabel(allContacts[i + j]);
+				label.setFont(fontForOutput);
+				deleteContacts.add(label);
+			}	
+
+			deleteButton = styleUpdateButtons("Delete", "dc", i);
+			deleteContacts.add(deleteButton);
+		}
+		
+		deleteContacts.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+		deleteContacts.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+		panel.add(deleteContacts);
+		frame.setVisible(true);
+	}
+	
+	/**
+	 * When a user clicks the 'Edit contacts' button, this method is called
+	 * and it re-outputs all the contact data but along with a 'change' button
+	 * a user can click to edit the corresponding contact details
+	 */
+	public void displayEditContact() {
+		clearOutput();
+		
+		String[] allContacts = new PersonalOrganiserData().selectAllContacts();
+
+		int numberOfRows = allContacts.length / peopleAttributes + 1;
+		
+		editContacts = new JPanel(new GridLayout(numberOfRows,3));
+		editContacts.setName("editContactsPanel");
+		editContacts.setBackground(new Color(230,230,250));
+		editContacts.setBorder(new EmptyBorder(10, 10, 10, 10) ); // padding
+		
+		Font fontForOutput = new Font("Helsinki", Font.PLAIN, 14);
+		Font fontForTitles = new Font("Helsinki", Font.BOLD, 16);
+		
+		for (int i = 0; i < peopleAttributes; i++) {
+			JLabel title = new JLabel(makeGrammaticalAttribute(peopleAttributesArray[i]));
+			title.setFont(fontForTitles);
+			editContacts.add(title);
+		}
+		
+		editContacts.add(new JLabel());
+		
+		for (int i = 0; i < allContacts.length; i += peopleAttributes) {
+			for (int j = 0; j < peopleAttributes; j++) {
+				JTextField textField = new JTextField(allContacts[i + j]);
+				textField.setFont(fontForOutput);
+				editContacts.add(textField);
+				changingContactDetails.add(textField);
+			}	
+			
+			editButton = styleUpdateButtons("Change", "ec", i);
+			editContacts.add(editButton);
+			
+		}
+		
+		editContacts.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+		editContacts.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+		panel.add(editContacts);
+		frame.setVisible(true);
+	}
+	
+	/**
+	 * This method converts the sqlite column names into a more grammatically 
+	 * correct format so the output is nicer.
+	 * @param attributeName the name of the sqlite column
+	 * @return a formatted column name string
+	 */
+	private String makeGrammaticalAttribute(String attributeName) {
+		String fixed = Character.toUpperCase(attributeName.charAt(0)) + attributeName.substring(1);
+		if (fixed.equals("Phonenumber"))
+			fixed = "Phone number";
+		else if (fixed.equals("Emailaddress"))
+			fixed = "Email address";
+	
+		return fixed;
+	}
+	
+	/**
+	 * When a user clicks 'Add item' for the to-do feature, a new window pops-up
+	 * and allows a user to write down the new activity they want to add, with
+	 * the data being sent to the database class for updating
+	 */
+	public void displayAddActivity() {
+		clearOutput();
+		
+		JTextField activity = new JTextField();
+		JPanel addActivityPanel = new JPanel(new GridLayout(0, 1));
+		addActivityPanel.add(new JLabel("Enter activity:"));
+		addActivityPanel.add(activity);
+		int result = JOptionPane.showConfirmDialog(null, addActivityPanel, "Add an activity",
+		    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+		if (result == JOptionPane.OK_OPTION) {
+		    String activityString = activity.getText();
+		    
+		    new PersonalOrganiserData().addToDoList(activityString);
+		} 
+		
+		outputToDoList();
+	}
+	
+	/**
+	 * When a user clicks 'Remove item', all the activities are outputted again
+	 * but another columns of buttons is added that allow the user to delete the 
+	 * corresponding activity.
+	 */
+	public void displayRemoveActivity() {
+		clearOutput();
+		
+		String[] allContacts = new PersonalOrganiserData().selectAllToDo();
+
+		int numberOfRows = allContacts.length + 1;
+		
+		deleteItems = new JPanel(new GridLayout(numberOfRows,3));
+		deleteItems.setName("deleteItemsPanel");
+		deleteItems.setBackground(new Color(230,230,250));
+		deleteItems.setBorder(new EmptyBorder(10, 10, 10, 10) ); // padding
+		
+		Font fontForOutput = new Font("Helsinki", Font.PLAIN, 14);
+		Font fontForTitles = new Font("Helsinki", Font.BOLD, 16);
+		
+		JLabel activityTitle = new JLabel("Activity");
+		activityTitle.setFont(fontForTitles);
+		deleteItems.add(activityTitle);
+		
+		deleteItems.add(new JLabel());
+		
+		for (int i = 0; i < allContacts.length; i += 1) {
+			JLabel activity = new JLabel(allContacts[i]);
+			activity.setFont(fontForOutput);
+			deleteItems.add(activity);
+			
+			
+			deleteButton = new JButton("Delete");
+			deleteButton.setName("dt" + i);
+			deleteButton.setContentAreaFilled(false);
+			deleteButton.setRequestFocusEnabled(false);
+			deleteButton.addActionListener(new ListenToAction());
+			deleteItems.add(deleteButton);
+			
+		}
+		
+		deleteItems.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+		deleteItems.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+		panel.add(deleteItems);
+		frame.setVisible(true);
+	}
+	
+	/**
+	 * When a user clicks 'Edit item', all the activities are outputted again
+	 * but another columns of buttons is added that allow the user to edit the 
+	 * corresponding activity.
+	 */
+	public void displayEditActivity() {
+		clearOutput();
+		
+		String[] allContacts = new PersonalOrganiserData().selectAllToDo();
+
+		int numberOfRows = allContacts.length + 1;
+		
+		editItems = new JPanel(new GridLayout(numberOfRows,3));
+		editItems.setName("editItemsPanel");
+		editItems.setBackground(new Color(230,230,250));
+		editItems.setBorder(new EmptyBorder(10, 10, 10, 10) ); // padding
+		
+		Font fontForOutput = new Font("Helsinki", Font.PLAIN, 14);
+		Font fontForTitles = new Font("Helsinki", Font.BOLD, 16);
+		
+		JLabel activityTitle = new JLabel("Activity");
+		activityTitle.setFont(fontForTitles);
+		editItems.add(activityTitle);
+		
+		editItems.add(new JLabel());
+		
+		for (int i = 0; i < allContacts.length; i += 1) {
+			JTextField activity = new JTextField(allContacts[i]);
+			activity.setFont(fontForOutput);
+			editItems.add(activity);
+			
+			changingToDoDetails.add(activity);
+			
+			editButton = new JButton("Change");
+			editButton.setName("et" + i);
+			editButton.setContentAreaFilled(false);
+			editButton.setRequestFocusEnabled(false);
+			editButton.addActionListener(new ListenToAction());
+			editItems.add(editButton);
+			
+		}
+		
+		editItems.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+		editItems.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+		panel.add(editItems);
+		frame.setVisible(true);
+	}
+	
+	/**
+	 *Any components that have been displayed to the main output area will be removed
+	 * so another panel can be displayed instead
+	 */
+	private void clearOutput() {
+		try {
+			outputContacts.setVisible(false);
+			checkDisplayContacts = false;
+		} catch (Exception e) {}
+		
+		try {
+			deleteContacts.setVisible(false);
+		} catch (Exception e) {}
+		
+		try {
+			editContacts.setVisible(false);
+		} catch (Exception e) {}
+		
+		try {
+			outputList.setVisible(false);
+			checkDisplayToDo = false;
+		} catch (Exception e) {}
+		try {
+			deleteItems.setVisible(false);
+		} catch (Exception e) {}
+		try {
+			editItems.setVisible(false);
+		} catch (Exception e) {}
+		try {
+			confirmationPanel.setVisible(false);
+		} catch (Exception e) {}
+	}
+
+	/**
+	 * Remove the sub-menu bar that appears after clicking 'Contacts' in the main bar 
+	 */
+	public void removeContactsBar() {
+		try {
+			subOptionsContacts.setVisible(false);
+			checkContactsBar = false;
+		} catch (Exception e) {}
+		
+	}
+	
+	/**
+	 * Remove the sub-menu bar that appears after clicking 'To do' in the main bar
+	 */
+	public void removeToDoBar() {
+		try {
+			subOptionsToDo.setVisible(false);
+			checkToDoBar = false;
+		} catch (Exception e) {}
+	}
+	
+	/**
+	 * This method displays the sub-menu bar that provides the options for the to-do list functionality
+	 */
+	private void outputToDoBar() {
+		if (!checkToDoBar) {
+			subOptionsToDo = new JPanel();
+			subOptionsToDo.setName("subOptionsToDoPanel");
+			subOptionsToDo.setBackground(new Color(192,192,192));	
+			
+			// listeners for buttons
+			ListenToAction buttonListener = new ListenToAction();
+			ListenForMouse mouseListener = new ListenForMouse();
+			
+			// add new item to 'to do' list
+			addItemToDo = styleSubMenuButton("Add item");
+			addItemToDo.setFocusable(false);
+			addItemToDo.addActionListener(buttonListener);
+			addItemToDo.addMouseListener(mouseListener);
+			
+			subOptionsToDo.add(addItemToDo);
+			
+			// remove an item from 'to do' list
+			removeItemToDo = styleSubMenuButton("Remove item");
+			removeItemToDo.setFocusable(false);
+			removeItemToDo.addActionListener(buttonListener);
+			removeItemToDo.addMouseListener(mouseListener);
+			
+			subOptionsToDo.add(removeItemToDo);
+			
+			// edit an item in 'to do' list
+			editItemToDo = styleSubMenuButton("Edit item");
+			editItemToDo.setFocusable(false);
+			editItemToDo.addActionListener(buttonListener);
+			editItemToDo.addMouseListener(mouseListener);
+			
+			subOptionsToDo.add(editItemToDo);
+			
+			subOptionsToDo.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+			subOptionsToDo.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+			panel.add(subOptionsToDo);
+			
+			checkToDoBar = true;
+			frame.setVisible(true);
+		}
+	}
+	
+	/**
+	 * This method asks the sqlite database to retrieve all stored activities
+	 * and output them to the main output area
+	 */
+	public void outputToDoList() {
+		if (!checkDisplayToDo) {
+			// display all to do items stored in database
+			String[] allItems = new PersonalOrganiserData().selectAllToDo();
+			
+			int numberOfRows = allItems.length +  1;
+			
+			outputList = new JPanel(new GridLayout(numberOfRows,0));
+			outputList.setName("outputListPanel");
+			outputList.setBackground(new Color(230,230,250));
+			outputList.setBorder(new EmptyBorder(20, 40, 10, 10) ); // padding
+			
+			Font fontForOutput = new Font("Helsinki", Font.PLAIN, 14);
+			Font fontForTitles = new Font("Helsinki", Font.BOLD, 16);
+			
+			JLabel toDoTitle = new JLabel("To Do");
+			toDoTitle.setFont(fontForTitles);
+			toDoTitle.setBorder(new EmptyBorder(5, 5, 5, 5));
+			outputList.add(toDoTitle);
+			
+			ListenForMouse mouseListener = new ListenForMouse();
+
+			for (int i = 0; i < allItems.length; i += 1) {
+				
+				// each label for each activity will be in a panel so customizations can be made
+				JPanel panelForLabels = new JPanel();
+				panelForLabels.setBackground(colorOutputBackground);
+				
+				String content = " " + allItems[i];
+				
+				// this code calculates the length of the activity name
+				// so that the size of the JLabel can be adjusted accordingly
+				Canvas c = new Canvas();
+				FontMetrics fm = c.getFontMetrics(fontForOutput);
+				int xDimensionLabel = fm.stringWidth(content);
+				
+				JLabel item = new JLabel(content);
+				item.setPreferredSize(new Dimension(xDimensionLabel,20));
+				item.setName("" + i + "");
+				item.setFont(fontForOutput);
+				item.addMouseListener(mouseListener);
+				
+				// storing the JLabels in an ArrayList so that the mouse listener
+				// has access to these components
+				highlightingToDoList.add(item);
+				panelForLabels.add(item);
+				
+				outputList.add(panelForLabels, BorderLayout.WEST);
+				
+			}
+
+			outputList.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+			outputList.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+			panel.add(outputList);
+			frame.setVisible(true);
+			checkDisplayToDo = true;
+		}
+	}
+	
+	/**
+	 * For editing and removing rows from the database a button is used to do this. This
+	 * button is styled here.
+	 * @param name The name of the JButton needed
+	 * @param buttonIdName The name of the button we need to set
+	 * @param buttonId the id of the button that gets appended to buttonIdName
+	 * @return a styled, named JButton
+	 */
+	private JButton styleUpdateButtons(String name, String buttonIdName, int buttonId) {
+		JButton button = new JButton(name);
+		button.setName(buttonIdName + buttonId);
+		button.setContentAreaFilled(false);
+		button.setRequestFocusEnabled(false);
+		button.addActionListener(new ListenToAction());
+		return button;
+	}
+	
+	/**
+	 * Styling for the buttons that appear in the sub-menu
+	 * @param name the name that the button will have
+	 * @return a styled JButton
+	 */
+	private JButton styleSubMenuButton(String name) {
+		JButton button = new JButton(name);
+		
+		button.setFont(fontForMenu);
+		button.setFocusPainted(false);
+		button.setContentAreaFilled(false);
+		button.setBorder(BorderFactory.createEmptyBorder());
+		button.setPreferredSize(new Dimension(110,30));
+		
+		return button;
+	}
+	
+	/**
+	 * Styling for the buttons that appear in the main menu
+	 * @param name the name that the button will have
+	 * @return a styled JButton
+	 */
+	private JButton styleMainMenuButtons(String name) {
+		JButton button = new JButton(name);
+		
+		button.setFont(fontForMenu);
+		button.setFocusPainted(false);
+		button.setContentAreaFilled(false);
+		button.setBorder(BorderFactory.createEmptyBorder());
+		button.setPreferredSize(new Dimension(80,30));
+		
+		return button;
+	}
+
+	/**
+	 * When a user selects 'Contacts' in the main menu, this method
+	 * will output the sub-menu bar that gives options for the user.
+	 */
+	private void outputContactsBar() {
+		if (!checkContactsBar) {
+			subOptionsContacts = new JPanel();
+			subOptionsContacts.setName("subOptionsPanel");
+			subOptionsContacts.setBackground(new Color(192,192,192));	
+			
+			// listeners for buttons
+			ListenToAction buttonListener = new ListenToAction();
+			ListenForMouse mouseListener = new ListenForMouse();
+			
+			// add contact button
+			addContact = styleSubMenuButton("Add contact");
+			addContact.setFocusable(false);
+			addContact.addActionListener(buttonListener);
+			addContact.addMouseListener(mouseListener);
+			
+			subOptionsContacts.add(addContact);
+			
+			// remove contact button
+			removeContact = styleSubMenuButton("Remove contacts");
+			removeContact.setFocusable(false);
+			removeContact.addActionListener(buttonListener);
+			removeContact.addMouseListener(mouseListener);
+			
+			subOptionsContacts.add(removeContact);
+			
+			// edit contacts button
+			editContact = styleSubMenuButton("Edit contacts");
+			editContact.setFocusable(false);
+			editContact.addActionListener(buttonListener);
+			editContact.addMouseListener(mouseListener);
+			
+			subOptionsContacts.add(editContact);
+			
+			// duplicate contacts button
+			findDuplicates = styleSubMenuButton("Find duplicates");
+			findDuplicates.setFocusable(false);
+			findDuplicates.addActionListener(buttonListener);
+			findDuplicates.addMouseListener(mouseListener);
+			
+			subOptionsContacts.add(findDuplicates);
+			
+			subOptionsContacts.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+			subOptionsContacts.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+			panel.add(subOptionsContacts);
+			
+			checkContactsBar = true;
+			frame.setVisible(true);
+		}
+	}
+	
+	/**
+	 * This method asks the sqlite database to retrieve all the contact
+	 * details stored in the database and then output it as JLabels to
+	 * the main output area.
+	 */
+	private void outputContactsInfo() {
+		if (!checkDisplayContacts) {
+			
+			// display all contacts stored to database
+			String[] allContacts = new PersonalOrganiserData().selectAllContacts();
+			
+			int numberOfRows = allContacts.length / peopleAttributes + 1;
+			
+			outputContacts = new JPanel(new GridLayout(numberOfRows,0));					
+			outputContacts.setName("outputContactsPanel");
+			outputContacts.setBackground(new Color(230,230,250));
+			outputContacts.setBorder(new EmptyBorder(10, 10, 10, 10) ); // padding
+			
+			Font fontForOutput = new Font("Helsinki", Font.PLAIN, 14);
+			Font fontForTitles = new Font("Helsinki", Font.BOLD, 16);
+			
+			for (int i = 0; i < peopleAttributes; i++) {
+				JLabel title = new JLabel(makeGrammaticalAttribute(peopleAttributesArray[i]));
+				title.setFont(fontForTitles);
+				outputContacts.add(title);
+			}
+			
+			for (int i = 0; i < allContacts.length; i += peopleAttributes) {
+				for (int j = 0; j < peopleAttributes; j++) {
+					JLabel label = new JLabel(allContacts[i + j]);
+					label.setFont(fontForOutput);
+					outputContacts.add(label);
+				}
+			}
+			
+			
+			outputContacts.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+			outputContacts.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+			panel.add(outputContacts);	
+			frame.setVisible(true);
+			checkDisplayContacts = true;
+		}
+	}
+	
+	/**
+	 * Creates a new JFrame and hence window that contains a string that describes 
+	 * how to use the application
+	 */
+	private void outputManual() {
+		JFrame manualFrame = new JFrame();
+		manualFrame.setTitle("Manual");
+		manualFrame.setLocationRelativeTo(menuHelp);
+		
+		JPanel manualPanel = new JPanel();
+		
+		ListenForKey keyListener = new ListenForKey();
+		manualFrame.setFocusable(true);
+		manualFrame.addKeyListener(keyListener);
+		
+		String manual = "<html><h3>How to use this program</h3>"
+				+ "- use the top menu bar to select which feature you want to use<br>"
+				+ "- information will show up on the screen correponding to which feature you chose<br>"
+				+ "- you can select what you want to do with the output by clicking the add/remove/edit buttons on the menu<br>"
+				+ "- you can strike out to do list items by clicking on them, and you can undo that by clicking on them again<br>"
+				+ "- application does not have scrolling capacbilities yet"
+				+ "<h3>Shortcuts</h3>"
+				+ "- Press ESC to quit prorgam<br>"
+				+ "- Press c to see your contacts<br>"
+				+ "- Press t to see your to-do list<br>"
+				+ "- Press a to add<br>"
+				+ "- Press r to remove<br>"
+				+ "- Press e to edit</html>";
+		
+		JLabel manualLabel = new JLabel(manual);
+		manualLabel.setBorder(new EmptyBorder(10,10,10,10));
+		manualPanel.add(manualLabel);
+		
+		manualFrame.add(manualPanel);
+		manualFrame.pack();
+		manualFrame.setVisible(true);
+	}
+	
+	/*
+	 * This listens to action events that then calls the relevant method for it
+	 */
+	private class ListenToAction implements ActionListener {
+
+		/**
+		 * When buttons are clicked, the identity of the button is determined and
+		 * then the appropriate method is called to implement what the button represents
+		 */
+		public void actionPerformed(ActionEvent e) {
+			if (e.getSource() == menuItemExit) {
+				System.exit(0);
+			}
+			else if (e.getSource() == menuItemManual) {
+				outputManual();
+			}
+			else if (e.getSource() == buttonContacts) {				
+				clearOutput();
+				removeToDoBar();		
+				outputContactsBar();
+				outputContactsInfo();
+			}
+			else if (e.getSource() == addContact) {
+				displayAddContact();
+			}
+			else if (e.getSource() == removeContact) {
+				displayDeleteContact();
+
+			}
+			else if (e.getSource() == editContact) {
+				displayEditContact();
+			}
+			
+			else if (e.getSource() == buttonToDo) {
+				clearOutput();
+				removeContactsBar();		
+				outputToDoBar();
+				outputToDoList();
+			}
+			
+			else if (e.getSource() == addItemToDo) {
+				displayAddActivity();
+			}
+			
+			else if (e.getSource() == removeItemToDo) {
+				displayRemoveActivity();
+			}
+			
+			else if (e.getSource() == editItemToDo) {
+				displayEditActivity();
+			}
+			else if (e.getSource() == findDuplicates) {
+				displayDuplicates();
+			}
+			
+			else if (e.getSource() instanceof JButton) {
+				String buttonName = ((Component) e.getSource()).getName();
+
+				if (buttonName.substring(0,2).equals("ec")) {
+					editContactDatabase(buttonName);
+				}
+				else if (buttonName.substring(0,2).equals("dc")) {
+					deleteContactDatabase(buttonName);
+				}
+				else if (buttonName.substring(0,2).equals("et")) {
+					editItemToDoDatabase(buttonName);
+				}
+				else if (buttonName.substring(0,2).equals("dt")) {
+					removeItemToDoDatabase(buttonName);
+				}
+				
+			}
+			
+		}		
+	}
+	
+	/**
+	 * This listens to mouse events and then calls the appropriate
+	 * code based on which button is clicked.
+	 */
+	private class ListenForMouse implements MouseListener {
+
+		@SuppressWarnings("unchecked")
+		public void mouseClicked(MouseEvent e) {
+			// looks through arraylist of activites and determines which one was clicked
+			// if it has been clicked, it will be given a STRIKETHROUGH
+			// if it already has a STRIKETHROUGH, it will then be removed
+			for (JLabel i : highlightingToDoList) {	
+				if (e.getSource() == i) {
+					
+					if (i.getFont().getAttributes().containsValue(TextAttribute.STRIKETHROUGH_ON)) {
+						@SuppressWarnings("rawtypes")
+						Map attributes = i.getFont().getAttributes();
+						attributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH);
+						i.setFont(new Font(attributes));
+					}
+					else {
+						Font font = i.getFont();
+						@SuppressWarnings("rawtypes")
+						Map attributes = font.getAttributes();
+						attributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON);
+						Font newFont = new Font(attributes);
+						i.setFont(newFont);
+					}
+				}
+			}
+			
+			if (e.getSource() == editButton) {
+				System.out.println("Hi");
+			}		
+		}
+
+		public void mouseEntered(MouseEvent e) {
+			// highlight the buttons that are on the top menu bar
+			if (e.getSource() == buttonToDo || e.getSource() == buttonContacts) {
+				((AbstractButton) e.getSource()).setContentAreaFilled(true);
+				((AbstractButton) e.getSource()).setBackground(new Color(192,192,192));
+			}
+			// highlight the buttons that appear on the sub menu bar after clicking on a button from the top menu bar
+			else if (e.getSource() == addContact || e.getSource() == removeContact || e.getSource() == editContact || e.getSource() == addItemToDo || e.getSource() == removeItemToDo || e.getSource() == editItemToDo || e.getSource() == findDuplicates) {
+				((AbstractButton) e.getSource()).setContentAreaFilled(true);
+				((AbstractButton) e.getSource()).setBackground(new Color(211,211,211));
+			}
+			// highlight to do list activities green and when clicked, strike it out
+			// if already striked-out, set text to red which will then remove strike-out
+			else  {
+				for (JLabel i : highlightingToDoList) {
+					if (e.getSource() == i) {
+						
+						if (i.getFont().getAttributes().containsValue(TextAttribute.STRIKETHROUGH_ON)) {
+							i.setForeground(Color.red);
+						}
+						else {
+							i.setForeground(Color.green);
+						}
+					}
+				}
+			}
+		}
+
+		public void mouseExited(MouseEvent e) {
+			if (e.getSource() == buttonContacts || e.getSource() == buttonToDo || e.getSource() == addContact || e.getSource() == removeContact || e.getSource() == editContact || e.getSource() == addItemToDo || e.getSource() == removeItemToDo || e.getSource() == editItemToDo || e.getSource() == findDuplicates) {
+				((AbstractButton) e.getSource()).setContentAreaFilled(false);
+			}
+			// highlight to do list activities black when mouse leaves JLabel
+			else  {
+				for (JLabel i : highlightingToDoList) {
+					if (e.getSource() == i) {
+						i.setForeground(Color.black);
+					}
+				}
+			}
+		}
+
+		public void mousePressed(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mouseReleased(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
+	
+	/*
+	 * This listens to keys pressed in relation to the main frame
+	 */
+	private class ListenForKey implements KeyListener {
+
+		@Override
+		public void keyPressed(KeyEvent ke) {
+			if (ke.getKeyCode() == 27)
+				System.exit(0);
+			else if (ke.getKeyCode() == 67)
+				buttonContacts.doClick();
+			else if (ke.getKeyCode() == 84)
+				buttonToDo.doClick();
+			else if (ke.getKeyCode() == 65) {
+				if (checkDisplayContacts)
+					addContact.doClick();
+				else if (checkDisplayToDo)
+					addItemToDo.doClick();
+			}
+			else if (ke.getKeyCode() == 82) {
+				boolean checkEditContact = false;
+				try {
+					checkEditContact = editContact.isVisible();
+				} catch (Exception e) {}
+				boolean checkEditItem = false;
+				try {
+					checkEditItem = editItemToDo.isVisible();
+				} catch (Exception e) {}
+				if (checkDisplayContacts || checkEditContact)
+					removeContact.doClick();
+				else if (checkDisplayToDo || checkEditItem)
+					removeItemToDo.doClick();
+			}
+			else if (ke.getKeyCode() == 69) {
+				boolean checkRemContact = false;
+				try {
+					checkRemContact = removeContact.isVisible();
+				} catch (Exception e) {}
+				boolean checkRemItem = false;
+				try {
+					checkRemItem = removeItemToDo.isVisible();
+				} catch (Exception e) {}
+				if (checkDisplayContacts || checkRemContact)
+					editContact.doClick();
+				else if (checkDisplayToDo || checkRemItem)
+					editItemToDo.doClick();
+			}
+		}
+
+		@Override
+		public void keyReleased(KeyEvent ke) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void keyTyped(KeyEvent ke) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
+
+	
+
+	public void displayDuplicates() {
+		
+		boolean duplicates = new PersonalOrganiserData().areThereDuplicates();
+		
+		JFrame duplicateFrame = new JFrame();
+		duplicateFrame.setTitle("Duplicates");
+		duplicateFrame.setLocationRelativeTo(findDuplicates);
+		
+		JPanel duplicatePanel = new JPanel();
+		
+		JLabel answer = new JLabel();
+		answer.setBorder(new EmptyBorder(10,10,10,10));
+		if (duplicates)
+			answer.setText("YES");
+		else
+			answer.setText("NO");
+		
+		duplicatePanel.add(answer);
+		
+		duplicateFrame.add(duplicatePanel);
+		duplicateFrame.pack();
+		duplicateFrame.setVisible(true);
+	}
+}

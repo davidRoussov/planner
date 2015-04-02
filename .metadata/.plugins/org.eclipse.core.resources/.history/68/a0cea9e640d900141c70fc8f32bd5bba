@@ -1,0 +1,309 @@
+import static org.junit.Assert.*;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+import org.hamcrest.core.IsEqual;
+import org.hamcrest.core.IsNot;
+import org.junit.Assert;
+import org.junit.Test;
+
+public class Testing {
+
+	@Test
+	public void testAddContact() {
+		PersonalOrganiserData test = new PersonalOrganiserData();
+		
+		// creating data to test
+		String[] allAttributes = test.peopleAttributes;
+		String[] testInputs = new String[allAttributes.length];
+		for (int i = 0; i < testInputs.length; i++) {
+			testInputs[i] = "test" + i;
+		}
+		
+		// performing test
+		test.addContact(testInputs);
+		
+		// Connecting to the database to confirm test input is there
+		Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+	      
+	      String path = "jdbc:sqlite:" + test.getCurrentDirectory() + PersonalOrganiserData.databaseName; 
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      
+	      String sql = "SELECT * FROM people WHERE id=(SELECT MAX(id) FROM people);"; // selecting last row from people table
+	      String[] lastRow = new String[allAttributes.length];
+	      ResultSet rs = statement.executeQuery(sql);
+	      int newId = 0;
+	      while (rs.next()) {
+	    	  newId = rs.getInt(1);
+	    	  for (int i = 1; i < allAttributes.length + 1; i++) {
+	    		  lastRow[i-1] = rs.getString(i+1);
+	    	  }
+	      }
+	      
+	      Assert.assertArrayEquals(testInputs, lastRow); // asserting that the last row from the database corresponds to the input we gave addContact
+	      test.deletePerson(newId); // delete this test input so it doesn't have to be done manually
+	      
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }	
+	}
+	
+	@Test
+	public void testRemoveContact() {
+		PersonalOrganiserData test = new PersonalOrganiserData();
+		
+		// creating data to test
+		String[] allAttributes = test.peopleAttributes;
+		String[] testInputs = new String[allAttributes.length];
+		for (int i = 0; i < testInputs.length; i++) {
+			testInputs[i] = "test" + i;
+		}
+		
+		// adding some data to be deleted
+		test.addContact(testInputs);
+		
+		// Connecting to the database to confirm test input is there
+		Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+	      
+	      String path = "jdbc:sqlite:" + test.getCurrentDirectory() + PersonalOrganiserData.databaseName; 
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      
+	      String sql = "SELECT * FROM people WHERE id=(SELECT MAX(id) FROM people);"; // selecting last row from people table
+	      int idLastRow = 0;
+	      ResultSet rs = statement.executeQuery(sql);
+	      while (rs.next()) {
+	    	  idLastRow = rs.getInt(1);
+	      }
+	      
+	      test.deletePerson(idLastRow); // testing the deletion method here
+	      
+	      // selecting last row again to compare
+	      String[] lastRow = new String[allAttributes.length];
+	      rs = statement.executeQuery(sql);
+	      while (rs.next()) {
+	    	  for (int i = 1; i < allAttributes.length + 1; i++) {
+	    		  lastRow[i-1] = rs.getString(i+1);
+	    	  }
+	      }
+	      
+	      Assert.assertThat(testInputs, IsNot.not(IsEqual.equalTo(lastRow))); // asserting that the last row from the database DOES NOT correspond to the input we gave
+	      
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }	
+	}
+	
+	@Test
+	public void testEditContact() {
+		PersonalOrganiserData test = new PersonalOrganiserData();
+		
+		// creating data to test
+		String[] allAttributes = test.peopleAttributes;
+		String[] testInputs = new String[allAttributes.length];
+		for (int i = 0; i < testInputs.length; i++) {
+			testInputs[i] = "test" + i;
+		}
+		
+		// adding some data to be edited
+		test.addContact(testInputs);
+		
+		// Connecting to the database to confirm test input is there
+		Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+	      
+	      String path = "jdbc:sqlite:" + test.getCurrentDirectory() + PersonalOrganiserData.databaseName; 
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      
+	      // getting the id of the last row as well as all the fields
+	      String sql = "SELECT * FROM people WHERE id=(SELECT MAX(id) FROM people);"; // selecting last row from people table
+	      int idLastRow = 0;
+	      String[] lastRowChanged = new String[allAttributes.length];
+	      ResultSet rs = statement.executeQuery(sql);
+	      while (rs.next()) {
+	    	  idLastRow = rs.getInt(1);
+	    	  for (int i = 1; i < allAttributes.length + 1; i++) {
+	    		  lastRowChanged[i-1] = rs.getString(i+1) + "X"; // changing each field by adding an "X"
+	    	  }
+	      }
+	      
+	      test.updateContact(idLastRow, lastRowChanged); // testing the method here
+	      
+	      String[] lastRow = new String[allAttributes.length];
+	      rs = statement.executeQuery(sql);
+	      while (rs.next()) {
+	    	  for (int i = 1; i < allAttributes.length + 1; i++) {
+	    		  lastRow[i-1] = rs.getString(i+1);
+	    	  }
+	      }
+	     
+	      Assert.assertArrayEquals(lastRowChanged, lastRow); //asserting that the last row from the database equals the change made
+	      test.deletePerson(idLastRow); // deleting unnecessary data
+	      
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }	
+	}
+	
+	@Test
+	public void testAddItem() {
+		PersonalOrganiserData test = new PersonalOrganiserData();
+
+		String testInput = "test";
+		
+		// performing test
+		test.addToDoList(testInput);
+		
+		// Connecting to the database to confirm test input is there
+		Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+	      
+	      String path = "jdbc:sqlite:" + test.getCurrentDirectory() + PersonalOrganiserData.databaseName; 
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      
+	      String sql = "SELECT * FROM todo WHERE id=(SELECT MAX(id) FROM todo);"; // selecting last row from todo table
+	      String lastRow = null;
+	      ResultSet rs = statement.executeQuery(sql);
+	      int newId = 0;
+	      while (rs.next()) {
+	    	  newId = rs.getInt(1);
+	    	  lastRow = rs.getString(2);
+	      }
+	      
+	      assertEquals(testInput, lastRow); // asserting that the last row from the database corresponds to the input we gave addToDoList
+	      test.deleteItemToDo(newId); // delete this test input so it doesn't have to be done manually
+	      
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }	
+	}
+
+	@Test
+	public void testRemoveItem() {
+		PersonalOrganiserData test = new PersonalOrganiserData();
+		
+		// creating data to test
+		String testInput = "testingRemovingToDo";
+		
+		// adding some data to be deleted
+		test.addToDoList(testInput);
+		
+		// Connecting to the database to confirm test input is there
+		Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+	      
+	      String path = "jdbc:sqlite:" + test.getCurrentDirectory() + PersonalOrganiserData.databaseName; 
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      
+	      String sql = "SELECT * FROM todo WHERE id=(SELECT MAX(id) FROM todo);"; // selecting last row from todo table
+	      int idLastRow = 0;
+	      ResultSet rs = statement.executeQuery(sql);
+	      while (rs.next()) {
+	    	  idLastRow = rs.getInt(1);
+	      }
+	      
+	      test.deleteItemToDo(idLastRow); // testing the deletion method here
+	      
+	      // selecting last row again to compare
+	      String lastRow = null;
+	      rs = statement.executeQuery(sql);
+	      while (rs.next()) {
+	    	  lastRow = rs.getString(2);
+	      }
+	      
+	      assertNotEquals(testInput, lastRow);
+	      
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }	
+	}
+
+	@Test
+	public void testEditItem() {
+		PersonalOrganiserData test = new PersonalOrganiserData();
+		
+		String testInput = "testingEditItem";
+		
+		// adding some data to be edited
+		test.addToDoList(testInput);
+		
+		// Connecting to the database to confirm test input is there
+		Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+	      
+	      String path = "jdbc:sqlite:" + test.getCurrentDirectory() + PersonalOrganiserData.databaseName; 
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      
+	      // getting the id of the last row as well as all the fields
+	      String sql = "SELECT * FROM todo WHERE id=(SELECT MAX(id) FROM todo);"; // selecting last row from todo table
+	      int idLastRow = 0;
+	      String lastRowChanged = null;
+	      ResultSet rs = statement.executeQuery(sql);
+	      while (rs.next()) {
+	    	  idLastRow = rs.getInt(1);
+	    	  lastRowChanged = rs.getString(2) + "X";
+	      }
+	      
+	      test.updateItemToDo(idLastRow, lastRowChanged); // testing the method here
+	      
+	      // extracting the last row again to confirm it has been change
+	      String lastRow = null;
+	      rs = statement.executeQuery(sql);
+	      while (rs.next()) {
+	    	  lastRow = rs.getString(2);
+	      }
+	     
+	      assertEquals(lastRowChanged, lastRow); //asserting that the last row from the database equals the change made
+	      test.deleteItemToDo(idLastRow); // deleting unnecessary data
+	      
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }	
+	}
+}

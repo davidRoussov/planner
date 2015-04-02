@@ -1,0 +1,587 @@
+package outline;
+
+import java.io.File;
+import java.sql.*;
+import java.util.ArrayList;
+
+/**
+ *  Class that is used to interact with database for the personal organiser
+    Copyright (C) <2015>  <David Roussov>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    @author David Roussov
+ */
+public class PersonalOrganiserData {
+	
+	private static String projectName = "COMP2100 Assignment 1 2015";
+	public static String databaseName = "/personal_organiser.db";
+	private String path = "jdbc:sqlite:" + this.getCurrentDirectory() + databaseName; 
+	private String createTablePeopleSql = "CREATE TABLE people ("
+      		+ "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+      		+ "name VARCHAR, "
+      		+ "phonenumber INT, "
+      		+ "emailaddress VARCHAR,"
+      		+ "address VARCHAR,"
+      		+ "yearBirth INT);";
+	private String createTableToDoSql = "CREATE TABLE todo ("
+			+ "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+			+ "activity VARCHAR);";
+
+	public String[] peopleAttributes = getPeopleAttributes();
+	public String[] peopleTypes = getPeopleTypes();
+	
+	/**
+	 * Creates a string array of all the data types in the 'people' table
+	 * corresponding in order to their column names
+	 * @return string array of all data types from 'people'
+	 */
+	public String[] getPeopleTypes() {
+		
+		if (!doesDatabaseExist()) {
+			createDatabaseAndTables();
+		}
+		
+		ArrayList<String> types = new ArrayList<String>();
+		
+		Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      String sql = "PRAGMA table_info(people);";
+	      
+	      ResultSet rs = statement.executeQuery(sql);
+	      
+	      while(rs.next()) {
+	    	  types.add(rs.getString(3));
+	      }
+	      types.remove(0); // we don't need the id primary key
+	      
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }
+	    
+	    return types.toArray(new String[types.size()]);
+	}
+	
+	/**
+	 * This method returns a String array consisting of all the SQL column names besides the primary key
+	 * in order
+	 * @return string array of all column names
+	 */
+	public String[] getPeopleAttributes() {
+		
+		if (!doesDatabaseExist()) {
+			createDatabaseAndTables();
+		}
+		
+		ArrayList<String> attributes = new ArrayList<String>();
+		
+		Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      String sql = "PRAGMA table_info(people);";
+	      
+	      ResultSet rs = statement.executeQuery(sql);
+	      
+	      while(rs.next()) {
+	    	  attributes.add(rs.getString(2));
+	      }
+	      attributes.remove(0); // we don't need the id primary key
+	      
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }
+	    
+	    return attributes.toArray(new String[attributes.size()]);
+	}
+	
+	/**
+	 * Gives back an array of strings consisting of all the contacts stored
+	 * in the database.
+	 * @return string array of the 'people' table's values
+	 */
+	public String[] selectAllContacts() {
+		
+		if (!doesDatabaseExist()) {
+			createDatabaseAndTables();
+		}
+		
+		ArrayList<String> allContacts = new ArrayList<String>();
+		
+	    Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      String sql = "SELECT * FROM people;";
+	      
+	      ResultSet rs = statement.executeQuery(sql);
+	      
+	      while (rs.next()) {
+	    	  for (int i = 0; i < peopleAttributes.length; i++) {
+	    		  allContacts.add(rs.getString(peopleAttributes[i]));
+	    	  }
+	      }
+
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }
+
+		return allContacts.toArray(new String[allContacts.size()]);
+	}
+
+	/**
+	 * Adds a contact to the database. The method first checks if a database exists
+	 * and creates one if it doesn't. Then it creates a connection to SQLITE and
+	 * inserts the parameters provided into the 'people' table.
+	 * @param contactNameStr the name of the contact to be added
+	 * @param contactNumberStr the phone number of the contact to be added
+	 */
+	public void addContact(String[] allInput) {
+		
+		if (!doesDatabaseExist()) {
+			createDatabaseAndTables();
+		}
+		
+	    Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      
+	      String fields = "(";
+	      for (int i = 0; i < peopleAttributes.length; i++) {
+	    	  fields += " " + peopleAttributes[i] + ",";
+	      }
+	      fields = fields.substring(0, fields.length() - 1);
+	      fields += " )";
+	      
+	      String values = "(";
+	      for (int i = 0; i < allInput.length; i++) {
+    		  values += " '" + allInput[i] + "',";
+	      }
+	      values = values.substring(0, values.length() - 1);
+	      values += " );";
+	     
+	      String sql = "INSERT INTO people " + fields + " VALUES " + values;
+	     
+	      statement.executeUpdate(sql);
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }
+	}
+
+	/**
+	 * This method deletes a contact from the database. It works by deleting a row with a particular
+	 * id (primary key) which is going to correspond to which JLabel contact was chosen counting
+	 * from the top. Consequently, the ids of the 'people' table are reset at the end.
+	 * @param personId the database id of the person contact to be deleted
+	 */
+	public void deletePerson(int personId) {
+	    Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      String sql = "DELETE FROM people WHERE ID=" + personId + ";";
+
+	      statement.executeUpdate(sql);
+	      statement.close();
+	      connection.close();
+	      
+	      resetTableIds("people");
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }
+	}
+	
+	/**
+	 * This method gets the current directory of sqlite3.exe so that a connection
+	 * can be made to it.
+	 * @return the path to sqlite3.exe
+	 */
+	public String getCurrentDirectory() {
+		String currentDirectory = System.getProperty("user.dir");
+		currentDirectory = currentDirectory.replace("\\", "/");
+	    currentDirectory = currentDirectory.substring(0, currentDirectory.length() - projectName.length());
+		return currentDirectory;
+	}
+	
+	/**
+	 * This method resets the table ids so that contact deletion works properly, as there
+	 * might be incorrect ordering of the primary key after some deletions, and the program
+	 * depends on the numbering of the table to be ordered. It first checks if a table
+	 * called 'temp' exists. If it does, the method deletes everything from it and copies the
+	 * main table data into it so that the main table's data can be deleted and the auto increment
+	 * sequence reset, and then the 'temp' table data is copied back into the main table with correct
+	 * ordering. If 'temp' does not exist, the method first creates the table and then proceeds as
+	 * previously specified.
+	 */
+	public void resetTableIds(String tableToReset) {
+		// creating sql string for command for creating a temp copy of the 'people' table based on an arbitrary
+		// number of attributes the 'people' table has
+		String sqlTempPeople = "INSERT INTO temp "
+				+ "SELECT NULL, ";
+		for (int i = 0; i < peopleAttributes.length; i++) {
+			sqlTempPeople += peopleAttributes[i] + ", ";
+		}
+		sqlTempPeople = sqlTempPeople.substring(0, sqlTempPeople.length() - 2);
+		sqlTempPeople +=  " FROM people;";
+		
+		// creating sql string command for send the data back from the temp table
+		// back to the people table
+		String sqlPeople = sqlTempPeople.replaceAll("INTO temp", "INTO people");
+		sqlPeople = sqlPeople.replaceAll("FROM people", "FROM temp");
+		
+		String sqlTempTodo = "INSERT INTO temp "
+    	  		+ "SELECT NULL, "
+    	  		+ "activity "
+    	  		+ "FROM todo;";
+		
+		String sqlTodo = sqlTempTodo.replaceAll("INTO temp", "INTO todo");
+		sqlTodo = sqlTodo.replaceAll("FROM todo", "FROM temp");
+		
+
+	    Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      
+	      // delete table 'temp' only if it already exists
+	      try {
+	    	  statement.executeUpdate("DROP TABLE temp");
+	      } catch (Exception e) {}
+	      
+	      
+    	  if (tableToReset.equals("people")) {
+	    	  String createTempTableSql = createTablePeopleSql.replaceAll("people", "temp");
+	    	  statement.executeUpdate(createTempTableSql);
+	    	  
+	    	  statement.executeUpdate(sqlTempPeople);
+	    	  
+	    	  statement.executeUpdate("DELETE FROM people;");
+	    	  statement.executeUpdate("DELETE FROM sqlite_sequence WHERE name='people';");
+	    	  statement.executeUpdate(sqlPeople);
+    	  }
+    	  else if (tableToReset.equals("todo")) {
+	    	  String createTempTableSql = createTableToDoSql.replaceAll("todo", "temp");
+	    	  statement.executeUpdate(createTempTableSql);
+	    	  
+	    	  statement.executeUpdate(sqlTempTodo);
+	    	  
+	    	  statement.executeUpdate("DELETE FROM todo;");
+	    	  statement.executeUpdate("DELETE FROM sqlite_sequence WHERE name='todo';");
+	    	  statement.executeUpdate(sqlTodo);
+    	  }
+    	  else {
+    		  System.out.println("error: no such table");
+    		  System.exit(0);
+    	  }
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }
+	}
+	
+	/**
+	 * Updates the values for the 'people' table based on the information the user passes.
+	 * @param id the id (primary key) of the row to be updated
+	 * @param newName the new value for name the user wishes to set
+	 * @param newPhoneNumber the new value for phonenumber the user wishes to set
+	 */
+	public void updateContact(int id, String[] allInput) {		
+	    Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      
+	      // creating the sql string by connecting attributes from stored in the 
+	      // peopleAttributes array with the corresponding values in the method input, allInput
+	      String sqlUpdate = "UPDATE people SET ";
+	      for (int i = 0; i < peopleAttributes.length; i++) {
+    		  sqlUpdate += peopleAttributes[i] + "='";
+    		  sqlUpdate += allInput[i] + "', ";
+	      }
+	      sqlUpdate = sqlUpdate.substring(0, sqlUpdate.length() - 2);
+	      sqlUpdate += " WHERE id=" + id + ";";
+	      
+	      statement.executeUpdate(sqlUpdate);
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	    	e.printStackTrace();
+	      System.exit(0);
+	    }
+		
+	}
+	
+	/**
+	 * If a database does not exist, this method creates one as well as forming
+	 * the tables used for storing contact data.
+	 */
+	public void createDatabaseAndTables() {
+	    Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      
+	      try {
+	    	  statement.executeUpdate(createTablePeopleSql);
+	      } catch(Exception e) {}
+	      try {
+	    	  statement.executeUpdate(createTableToDoSql);
+	      } catch(Exception e) {}
+
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	    	e.printStackTrace();
+	      System.exit(0);
+	    }
+	}
+	
+	/**
+	 * Checks if the database exists by finding the database file with
+	 * the appropriate name
+	 * @return
+	 */
+	public boolean doesDatabaseExist() {
+		boolean check = true;
+		
+		// first checking if the database .db file even exists
+	    File file = new File(getCurrentDirectory() + databaseName);
+		if (!file.exists())
+			check = false;
+		
+		// if it does exist, we now check if all tables needed are there
+		if (check) {
+			Connection connection = null;
+		    Statement statement = null;
+		    try {
+		      Class.forName("org.sqlite.JDBC");
+
+		      connection = DriverManager.getConnection(path);
+		      statement = connection.createStatement();
+		      
+	    	  ResultSet rs1 = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='people';");
+	    	  try {
+	    		  rs1.getString(1);
+	    	  } catch (Exception e) {check = false;}
+	    	  ResultSet rs2 = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='todo';");
+	    	  try {
+	    		  rs2.getString(1);
+	    	  } catch (Exception e) {check = false;}
+
+		      statement.close();
+		      connection.close();
+		    } catch ( Exception e ) {
+		    	e.printStackTrace();
+		      System.exit(0);
+		    }
+		}
+		
+	    return check;
+	}
+
+	/**
+	 * This method asks the database to select all to-do list activities
+	 * and give back a string array consisting of all those activities
+	 * @return string array of all activities
+	 */
+	public String[] selectAllToDo() {
+		
+		// create a database if it does not exist
+		if (!doesDatabaseExist()) {
+			createDatabaseAndTables();
+		}
+
+		ArrayList<String> allItems = new ArrayList<String>();
+		
+	    Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      String sql = "SELECT * FROM todo;";
+	      
+	      ResultSet rs = statement.executeQuery(sql);
+	      
+	      while (rs.next()) {
+	    	  allItems.add(rs.getString("activity"));
+	      }
+
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }
+
+		return allItems.toArray(new String[allItems.size()]);
+	}
+
+	/**
+	 * Delete an activity from the to-do list table
+	 * @param index the id for the activity stored in the database
+	 */
+	public void deleteItemToDo(int index) {
+		Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      String sql = "DELETE FROM todo WHERE id=" + index + ";";
+	      
+	      statement.executeUpdate(sql);
+	      statement.close();
+	      connection.close();
+	      
+	      resetTableIds("todo");
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }
+	}
+	
+	/**
+	 * Edit an activity already stored in the database.
+	 * @param index the id of the activity to be changed
+	 * @param newActivity what the previous activity is replaced with
+	 */
+	public void updateItemToDo(int index, String newActivity) {		
+		Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      String sql = "UPDATE todo SET activity='" + newActivity + "' WHERE id=" + index + ";";
+
+	      statement.executeUpdate(sql);
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }
+	}
+	
+	/**
+	 * Adds another activity to the database
+	 * @param activity the description of the activity to be stored
+	 */
+	public void addToDoList(String activity) {
+		
+		// create a database if it does not exist
+		if (!doesDatabaseExist()) {
+			createDatabaseAndTables();
+		}
+		
+	    Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      String sql = "INSERT INTO todo (activity) VALUES ('" + activity + "');";
+	      
+	      statement.executeUpdate(sql);
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }
+	}
+
+	public boolean areThereDuplicates() {
+		
+		Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+
+	      String sql = "SELECT * FROM people";
+	      ResultSet rs = statement.executeQuery(sql);
+	      
+	      ArrayList<String> allNames = new ArrayList<String>();
+	      while (rs.next()) {
+	    	  allNames.add(rs.getString(2));
+	      }
+	      
+	      
+	      for (int i = 0; i < allNames.size(); i++) {
+	    	  String name = allNames.get(i);
+	    	  for (int j = i+1; j < allNames.size(); j++) {
+	    		  String nextName = allNames.get(j);
+	    		  if (name.equals(nextName))
+	    			  return true;
+	    	  }
+	      }
+	      
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }
+	    
+	    return false;
+	}
+}
