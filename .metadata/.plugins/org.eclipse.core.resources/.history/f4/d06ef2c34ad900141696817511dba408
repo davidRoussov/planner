@@ -56,7 +56,6 @@ public class PersonalOrganiserGUI {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		
 		JPanel options = new JPanel();
-		options.setName("options");
 		options.setBackground(new Color(169,169,169));
 		
 		displayMainMenuButtons(options);
@@ -131,7 +130,7 @@ public class PersonalOrganiserGUI {
 	 * @param name the name that the button will have
 	 * @return a styled JButton
 	 */
-	JButton styleSubMenuButton(String name) {
+	private JButton styleSubMenuButton(String name) {
 		JButton button = new JButton(name);
 		
 		button.setFont(fontForMenu);

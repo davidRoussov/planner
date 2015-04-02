@@ -131,7 +131,7 @@ public class PersonalOrganiserGUI {
 	 * @param name the name that the button will have
 	 * @return a styled JButton
 	 */
-	JButton styleSubMenuButton(String name) {
+	private JButton styleSubMenuButton(String name) {
 		JButton button = new JButton(name);
 		
 		button.setFont(fontForMenu);

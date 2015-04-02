@@ -8,7 +8,6 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.font.TextAttribute;
-import java.text.AttributedCharacterIterator.Attribute;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -17,17 +16,8 @@ import javax.swing.border.EmptyBorder;
 
 public class PersonalOrganiserGUI {	
 	
-	JFrame frame;
-	JPanel panel;
-	
-	// the features of the software
-	String[] mainFeatures = {"Today", "Leaving", "Mistakes", "Activities", "Goals"};
-	
-	Color colorOutputBackground = new Color(230,230,250); // the color for the background of the main output area
-	Color colorMainButtonHighlight = new Color(192,192,192); // color of highlight when hovering over main feature button
-	
-	// the font for the menu options
-	Font fontForMenu = new Font("Helsinki", Font.BOLD, 12);
+	// the color for the background of the main output area
+	Color colorOutputBackground = new Color(230,230,250);
 	
 	public static void main(String[] args) {
 		new PersonalOrganiserGUI();
@@ -35,7 +25,7 @@ public class PersonalOrganiserGUI {
 	
 	public PersonalOrganiserGUI() {
 		
-		frame = new JFrame();
+		JFrame frame = new JFrame();
 		
 		ListenForKey keyListener = new ListenForKey();
 		frame.setFocusable(true);
@@ -49,14 +39,13 @@ public class PersonalOrganiserGUI {
 		
 		frame.setLayout(new BorderLayout());
 		
-     	createMenuBar(frame); // create standard menu bar
+     	createMenuBar(); // create standard menu bar
 		
-		panel = new JPanel();
+		JPanel panel = new JPanel();
 		panel.setBackground(new Color(169,169,169));
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		
 		JPanel options = new JPanel();
-		options.setName("options");
 		options.setBackground(new Color(169,169,169));
 		
 		displayMainMenuButtons(options);
@@ -73,9 +62,10 @@ public class PersonalOrganiserGUI {
 		ListenForMouse mouseListener = new ListenForMouse();
 		ListenToAction actionListener = new ListenToAction();
 		
-		for (String buttonName : mainFeatures) {
+		String[] allButtonNames = {"Today", "Leaving", "Mistakes", "Activities", "Goals"};
+		
+		for (String buttonName : allButtonNames) {
 			JButton button = styleMainMenuButtons(buttonName);
-			button.setName(buttonName);
 			button.setFocusable(false);
 			button.addMouseListener(mouseListener);
 			button.addActionListener(actionListener);
@@ -86,7 +76,7 @@ public class PersonalOrganiserGUI {
 	/**
 	 * This method creates a standard menu at the top of the window 
 	 */
-	public void createMenuBar(JFrame frame) {
+	public void createMenuBar() {
 		ListenToAction menuListener = new ListenToAction();
 		
 		JMenuBar bar =  new JMenuBar();
@@ -95,7 +85,6 @@ public class PersonalOrganiserGUI {
      	bar.add(menu);
      	
      	JMenuItem menuItemExit = new JMenuItem("Exit");
-     	menuItemExit.setName("menuItemExit");
      	menu.add(menuItemExit);
      	menuItemExit.addActionListener(menuListener);
      	
@@ -103,7 +92,6 @@ public class PersonalOrganiserGUI {
      	bar.add(menuHelp);
      	
      	JMenuItem menuItemManual = new JMenuItem("Manual");
-     	menuItemManual.setName("menuItemManual");
      	menuHelp.add(menuItemManual);
      	menuItemManual.addActionListener(menuListener);
      	frame.setJMenuBar(bar);
@@ -131,7 +119,7 @@ public class PersonalOrganiserGUI {
 	 * @param name the name that the button will have
 	 * @return a styled JButton
 	 */
-	JButton styleSubMenuButton(String name) {
+	private JButton styleSubMenuButton(String name) {
 		JButton button = new JButton(name);
 		
 		button.setFont(fontForMenu);
@@ -167,7 +155,7 @@ public class PersonalOrganiserGUI {
 	private void outputManual() {
 		JFrame manualFrame = new JFrame();
 		manualFrame.setTitle("Manual");
-		manualFrame.setLocationRelativeTo(null);
+		manualFrame.setLocationRelativeTo(menuHelp);
 		
 		JPanel manualPanel = new JPanel();
 		
@@ -208,15 +196,12 @@ public class PersonalOrganiserGUI {
 		 * then the appropriate method is called to implement what the button represents
 		 */
 		public void actionPerformed(ActionEvent e) {
-			String sourceName = ((Component) e.getSource()).getName();
-			
-			if (sourceName.equals("menuItemExit")) System.exit(0);
-			
-			else if (sourceName.equals("menuItemManual")) outputManual();
-
-			else if (sourceName.equals("Today")) new Today().showOptions(frame, panel);
-			
-			
+			if (e.getSource() == menuItemExit) {
+				System.exit(0);
+			}
+			else if (e.getSource() == menuItemManual) {
+				outputManual();
+			}
 		}		
 	}
 	
@@ -231,24 +216,9 @@ public class PersonalOrganiserGUI {
 		}
 
 		public void mouseEntered(MouseEvent e) {
-			String sourceName = ((Component) e.getSource()).getName();
-			
-			for (String mainFeature : mainFeatures) {
-				if (sourceName.equals(mainFeature)) {
-					((AbstractButton) e.getSource()).setContentAreaFilled(true);
-					((AbstractButton) e.getSource()).setBackground(colorMainButtonHighlight);
-				}
-			}
 		}
 
 		public void mouseExited(MouseEvent e) {
-			String sourceName = ((Component) e.getSource()).getName();
-			
-			for (String mainFeature : mainFeatures) {
-				if (sourceName.equals(mainFeature)) {
-					((AbstractButton) e.getSource()).setContentAreaFilled(false);
-				}
-			}
 		}
 
 		public void mousePressed(MouseEvent e) {
