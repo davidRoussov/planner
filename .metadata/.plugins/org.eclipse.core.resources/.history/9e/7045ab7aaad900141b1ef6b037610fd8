@@ -1,0 +1,54 @@
+package outline;
+
+import java.awt.Component;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+public class Today {
+
+	public void showOptions(JFrame frame, JPanel panel) {
+		if (!checkIfAlreadyDisplayed(panel)) {
+			JPanel todayPanel = new JPanel();
+			todayPanel.setName("todayPanel");
+			
+			
+			// add contact button
+			JButton addContact = new PersonalOrganiserGUI().styleSubMenuButton("Add contact");
+			addContact.setFocusable(false);
+			
+			todayPanel.add(addContact);
+			
+			// remove contact button
+			JButton removeContact = new PersonalOrganiserGUI().styleSubMenuButton("Remove contacts");
+			removeContact.setFocusable(false);
+			
+			todayPanel.add(removeContact);
+			
+			todayPanel.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+			todayPanel.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+			panel.add(todayPanel);
+			
+			frame.setVisible(true);
+		}
+	}
+	
+	public boolean checkIfAlreadyDisplayed(JPanel panel) {
+		boolean check = false;
+		
+		Component[] components = panel.getComponents();
+		
+		for (int i = 0; i < components.length; i++) {
+			if (components[i].getName().equals("todayPanel")) {
+				if (components[i].isVisible())
+					check = true;
+				else
+					break;
+			}
+		}
+		
+		return check;
+	}
+
+}

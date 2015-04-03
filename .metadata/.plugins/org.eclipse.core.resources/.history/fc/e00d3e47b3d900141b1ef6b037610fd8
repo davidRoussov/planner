@@ -1,0 +1,51 @@
+package outline;
+
+import java.awt.Component;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
+import javax.swing.AbstractButton;
+
+public class ListenForMouse implements MouseListener {
+
+	public void mouseClicked(MouseEvent e) {	
+	}
+
+	public void mouseEntered(MouseEvent e) {
+		String sourceName = null;
+		try {
+			sourceName = ((Component) e.getSource()).getName();
+		} catch (Exception err) {}
+		
+		for (String mainFeature : PersonalOrganiserGUI.mainFeatures) {
+			if (sourceName.equals(mainFeature)) {
+				((AbstractButton) e.getSource()).setContentAreaFilled(true);
+				((AbstractButton) e.getSource()).setBackground(PersonalOrganiserGUI.colorMainButtonHighlight);
+			}
+		}
+	}
+
+	public void mouseExited(MouseEvent e) {
+		String sourceName = null;
+		try {
+			sourceName = ((Component) e.getSource()).getName();
+		} catch (Exception err) {}
+		
+		for (String mainFeature : PersonalOrganiserGUI.mainFeatures) {
+			if (sourceName.equals(mainFeature)) {
+				((AbstractButton) e.getSource()).setContentAreaFilled(false);
+			}
+		}
+	}
+
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+}

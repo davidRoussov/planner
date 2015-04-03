@@ -1,0 +1,60 @@
+package outline;
+
+import java.awt.Component;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+public class Today {
+	
+	// the options for this feature
+	String[] options = {"Add", "Edit", "Delete"};
+
+	public void show(JFrame frame, JPanel panel) {
+		if (!checkIfAlreadyDisplayed(panel)) {
+			displayTodayButtons(panel);
+			
+			displayTodayInfo(panel);
+			
+			frame.setVisible(true);
+		}
+	}
+	
+	public boolean checkIfAlreadyDisplayed(JPanel panel) {
+		boolean check = false;
+		
+		Component[] components = panel.getComponents();
+		
+		for (int i = 0; i < components.length; i++) {
+			if (components[i].getName().equals("todayPanel")) {
+				if (components[i].isVisible())
+					check = true;
+				else
+					break;
+			}
+		}
+		
+		return check;
+	}
+	
+	public void displayTodayButtons(JPanel panel) {
+		JPanel todayPanel = new JPanel();
+		todayPanel.setName("todayPanel");
+		
+		for (String name : options) {
+			JButton button = Style.styleSubMenuButtons(name);
+			todayPanel.add(button);
+		}
+			
+		todayPanel.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+		todayPanel.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+		panel.add(todayPanel);
+	}
+	
+	public void displayTodayInfo(JPanel panel) {
+		
+	}
+
+
+}

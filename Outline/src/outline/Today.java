@@ -7,28 +7,15 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class Today {
+	
+	// the options for this feature
+	public static String[] options = {"Add", "Edit", "Delete"};
 
-	public void showOptions(JFrame frame, JPanel panel) {
+	public void show(JFrame frame, JPanel panel) {
 		if (!checkIfAlreadyDisplayed(panel)) {
-			JPanel todayPanel = new JPanel();
-			todayPanel.setName("todayPanel");
+			displayTodayButtons(frame, panel);
 			
-			
-			// add contact button
-			JButton addContact = new PersonalOrganiserGUI().styleSubMenuButton("Add contact");
-			addContact.setFocusable(false);
-			
-			todayPanel.add(addContact);
-			
-			// remove contact button
-			JButton removeContact = new PersonalOrganiserGUI().styleSubMenuButton("Remove contacts");
-			removeContact.setFocusable(false);
-			
-			todayPanel.add(removeContact);
-			
-			todayPanel.setAlignmentX(JFrame.CENTER_ALIGNMENT);
-			todayPanel.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
-			panel.add(todayPanel);
+			displayTodayInfo(panel);
 			
 			frame.setVisible(true);
 		}
@@ -50,5 +37,31 @@ public class Today {
 		
 		return check;
 	}
+	
+	public void displayTodayButtons(JFrame frame, JPanel panel) {
+		JPanel todayPanel = new JPanel();
+		todayPanel.setName("todayPanel");
+		todayPanel.setBackground(Style.colorSubMenuBackground);
+		
+		ListenForMouse mouseListener = new ListenForMouse();
+		ListenToAction actionListener = new ListenToAction(frame, panel);
+		
+		for (String name : options) {
+			JButton button = Style.styleSubMenuButtons(name);
+			button.setName(name);
+			button.addActionListener(actionListener);
+			button.addMouseListener(mouseListener);
+			todayPanel.add(button);
+		}
+			
+		todayPanel.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+		todayPanel.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+		panel.add(todayPanel);
+	}
+	
+	public void displayTodayInfo(JPanel panel) {
+		
+	}
+
 
 }

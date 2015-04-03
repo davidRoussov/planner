@@ -1,0 +1,43 @@
+package outline;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+
+public class Style {
+	
+	public static Color colorOutputBackground = new Color(230,230,250); // the color for the background of the main output area
+	public static Color colorSubMenuBackground = new Color(192,192,192); // the color for the background of the main output area
+	public static Color colorMainButtonHighlight = new Color(192,192,192); // color of highlight when hovering over main feature button
+	public static Color colorSubMainButtonHighlight = new Color(211,211,211); // color of highlight when hovering over sub menu options
+	
+	private static Font font = new Font("Helsinki", Font.BOLD, 12);
+	
+	public static JButton styleMainMenuButtons(String name) {
+		JButton button = new JButton(name);
+		
+		button.setFont(font);
+		button.setFocusPainted(false);
+		button.setContentAreaFilled(false);
+		button.setBorder(BorderFactory.createEmptyBorder());
+		button.setPreferredSize(new Dimension(80,30));
+		
+		return button;
+	}
+
+	public static JButton styleSubMenuButtons(String name) {
+		JButton button = new JButton(name);
+		
+		button.setFont(font);
+		button.setFocusable(false);
+		button.setFocusPainted(false);
+		button.setContentAreaFilled(false);
+		button.setBorder(BorderFactory.createEmptyBorder());
+		button.setPreferredSize(new Dimension(110,30));
+		
+		return button;
+	}
+}
