@@ -1,0 +1,134 @@
+package outline;
+
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.GridLayout;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+
+public class Today {
+	
+	public static String[] options = {"Add", "Edit", "Delete"};
+
+	public void show(JFrame frame, JPanel panel) {
+		if (!checkIfAlreadyDisplayed(panel)) {
+			displayTodayButtons(frame, panel);
+			
+			displayTodayInfo(frame, panel);
+			
+			frame.setVisible(true);
+		}
+	}
+	
+	public boolean checkIfAlreadyDisplayed(JPanel panel) {
+		boolean check = false;
+		
+		Component[] components = panel.getComponents();
+		
+		for (int i = 0; i < components.length; i++) {
+			if (components[i].getName().equals("todayPanel")) {
+				if (components[i].isVisible())
+					check = true;
+				else
+					break;
+			}
+		}
+		
+		return check;
+	}
+	
+	public void displayTodayButtons(JFrame frame, JPanel panel) {
+		JPanel todayButtons = new JPanel();
+		todayButtons.setName("todayPanel");
+		todayButtons.setBackground(Style.colorSubMenuBackground);
+		
+		ListenForMouse mouseListener = new ListenForMouse();
+		ListenToAction actionListener = new ListenToAction(frame, panel);
+		
+		for (String name : options) {
+			JButton button = Style.styleSubMenuButtons(name);
+			button.setName(name + "Today");
+			button.addActionListener(actionListener);
+			button.addMouseListener(mouseListener);
+			todayButtons.add(button);
+		}
+			
+		todayButtons.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+		todayButtons.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+		panel.add(todayButtons);
+	}
+	
+	public void displayTodayInfo(JFrame frame, JPanel panel) {
+		String[] allActivities = new TodayData().selectAllActivities();
+		//int numberOfRows = allActivities.length / 2 + 1;
+		
+		JPanel todayInfo = new JPanel(new GridLayout(1, 4));
+		todayInfo.setBackground(Style.colorOutputBackground);
+		todayInfo.setBorder(new EmptyBorder(10, 10, 10, 10));
+		
+		JPanel todayMorning = new JPanel(new GridLayout(4,1));
+		todayMorning.setBackground(Style.colorOutputBackground);
+		todayMorning.setBorder(new EmptyBorder(10, 10, 10, 10));
+		
+		JPanel todayAfternoon = new JPanel(new GridLayout(4,1));
+		todayAfternoon.setBackground(Style.colorOutputBackground);
+		todayAfternoon.setBorder(new EmptyBorder(10, 10, 10, 10));
+		
+		JPanel todayEvening = new JPanel(new GridLayout(4,1));
+		todayEvening.setBackground(Style.colorOutputBackground);
+		todayEvening.setBorder(new EmptyBorder(10, 10, 10, 10));
+		
+		JPanel todayNight = new JPanel(new GridLayout(4,1));
+		todayNight.setBackground(Style.colorOutputBackground);
+		todayNight.setBorder(new EmptyBorder(10, 10, 10, 10));
+		
+		JLabel morning = new JLabel("Morning");
+		todayMorning.add(morning);
+		JLabel afternoon = new JLabel("Afternoon");
+		todayAfternoon.add(afternoon);
+		JLabel evening = new JLabel("Evening");
+		todayEvening.add(evening);
+		JLabel night = new JLabel("Night");
+		todayNight.add(night);
+		
+		for (int i = 0; i < allActivities.length; i += 2) {
+			JLabel activity;
+			if (allActivities[i+1].equals("M")) {
+				activity = new JLabel(allActivities[i]);
+				todayMorning.add(activity);
+			}	
+			else if (allActivities[i+1].equals("A")) {
+				activity = new JLabel(allActivities[i]);
+				todayAfternoon.add(activity);
+			}	
+			else if (allActivities[i+1].equals("E")) {
+				activity = new JLabel(allActivities[i]);
+				todayEvening.add(activity);
+			}		
+			else if (allActivities[i+1].equals("N")) {
+				activity = new JLabel(allActivities[i]);
+				todayNight.add(activity);
+			}
+			
+		}
+		
+		
+		todayInfo.add(todayMorning);
+		todayInfo.add(todayAfternoon);
+		todayInfo.add(todayEvening);
+		todayInfo.add(todayNight);
+		
+		todayInfo.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+		todayInfo.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+		panel.add(todayInfo);
+		frame.setVisible(true);
+	}
+
+	public void displayAddActivity(JFrame frame, JPanel panel) {
+		
+	}
+}

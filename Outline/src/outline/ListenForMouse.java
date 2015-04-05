@@ -12,6 +12,7 @@ public class ListenForMouse implements MouseListener {
 	}
 
 	public void mouseEntered(MouseEvent e) {
+		
 		AbstractButton source = ((AbstractButton) e.getSource());
 		String sourceName = ((Component) e.getSource()).getName();
 		
@@ -24,7 +25,7 @@ public class ListenForMouse implements MouseListener {
 		}
 		
 		for (String todayOption : Today.options) {
-			if (sourceName.equals(todayOption)) {
+			if (sourceName.equals(todayOption + "Today")) {
 				source.setContentAreaFilled(true);
 				source.setBackground(Style.colorSubMainButtonHighlight);
 				return;
@@ -45,7 +46,7 @@ public class ListenForMouse implements MouseListener {
 		}
 		
 		for (String todayOption : Today.options) {
-			if (sourceName.equals(todayOption)) {
+			if (sourceName.equals(todayOption + "Today")) {
 				source.setContentAreaFilled(false);
 				return;
 			}

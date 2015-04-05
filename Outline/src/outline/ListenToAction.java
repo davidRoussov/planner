@@ -23,6 +23,13 @@ public class ListenToAction implements ActionListener {
 		if (sourceName.equals("menuItemExit")) System.exit(0);
 
 		else if (sourceName.equals("Today")) new Today().show(frame, panel);
+		else if (sourceName.equals("AddToday")) new Today().displayAddActivity(frame, panel);
+		else if (sourceName.equals("EditToday")) new Today().displayAddActivity(frame, panel);
+		else if (sourceName.equals("DeleteToday")) new Today().displayAddActivity(frame, panel);
+		
+		else {
+			System.out.println(sourceName);
+		}
 				
 	}		
 }
