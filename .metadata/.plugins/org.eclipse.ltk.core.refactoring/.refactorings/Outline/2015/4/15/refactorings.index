@@ -1,2 +1,4 @@
 1428211052407	Rename field 'createTablePeopleSql'
 1428211925574	Rename local variable 'todayPanel'
+1428639367079	Rename method 'clear'
+1428639378029	Rename method 'clearSubMendu'

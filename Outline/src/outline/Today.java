@@ -3,14 +3,25 @@ package outline;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.GridLayout;
+import java.util.Enumeration;
 
+import javax.swing.AbstractButton;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 public class Today {
+	
+	public static JPanel todayButtons;
+	public static JPanel todayInfo;
+	
+	private String[] timePeriods =  {"Morning", "Afternoon", "Evening", "Night"};
 	
 	public static String[] options = {"Add", "Edit", "Delete"};
 
@@ -42,7 +53,7 @@ public class Today {
 	}
 	
 	public void displayTodayButtons(JFrame frame, JPanel panel) {
-		JPanel todayButtons = new JPanel();
+		todayButtons = new JPanel();
 		todayButtons.setName("todayPanel");
 		todayButtons.setBackground(Style.colorSubMenuBackground);
 		
@@ -66,10 +77,11 @@ public class Today {
 		String[] allActivities = new TodayData().selectAllActivities();
 		//int numberOfRows = allActivities.length / 2 + 1;
 		
-		JPanel todayInfo = new JPanel(new GridLayout(1, 4));
+		todayInfo = new JPanel(new GridLayout(1, 4));
 		todayInfo.setBackground(Style.colorOutputBackground);
 		todayInfo.setBorder(new EmptyBorder(10, 10, 10, 10));
 		
+		// creating panels for each period of the day (timePeriods)
 		JPanel[] periodPanels = new JPanel[4];
 		for (int i = 0; i < periodPanels.length; i++) {
 			periodPanels[i] = new JPanel(new GridLayout(4,1));
@@ -77,23 +89,7 @@ public class Today {
 			periodPanels[i].setBorder(new EmptyBorder(10, 10, 10, 10));
 		}
 		
-//		JPanel todayMorning = new JPanel(new GridLayout(4,1));
-//		todayMorning.setBackground(Style.colorOutputBackground);
-//		todayMorning.setBackground(Style.colorOutputBackground);
-//		
-//		JPanel todayAfternoon = new JPanel(new GridLayout(4,1));
-//		todayAfternoon.setBackground(Style.colorOutputBackground);
-//		todayAfternoon.setBorder(new EmptyBorder(10, 10, 10, 10));
-//		
-//		JPanel todayEvening = new JPanel(new GridLayout(4,1));
-//		todayEvening.setBackground(Style.colorOutputBackground);
-//		todayEvening.setBorder(new EmptyBorder(10, 10, 10, 10));
-//		
-//		JPanel todayNight = new JPanel(new GridLayout(4,1));
-//		todayNight.setBackground(Style.colorOutputBackground);
-//		todayNight.setBorder(new EmptyBorder(10, 10, 10, 10));
-		
-		String[] timePeriods = {"Morning", "Afternoon", "Evening", "Night"};
+		// Adding JLabel title to each panel corresponding to the time period
 		for (int i = 0; i < 4; i++) {
 			JLabel title = new JLabel(timePeriods[i]);
 			title.setBorder(new EmptyBorder(3,3,3,3));
@@ -121,15 +117,13 @@ public class Today {
 				activity = new JLabel("- " + allActivities[i]);
 				activity.setBorder(new EmptyBorder(2,2,2,2));
 				periodPanels[3].add(activity);
-			}
-			
+			}		
 		}
 		
-		
-		todayInfo.add(periodPanels[0]);
-		todayInfo.add(periodPanels[1]);
-		todayInfo.add(periodPanels[2]);
-		todayInfo.add(periodPanels[3]);
+		todayInfo.add(periodPanels[0]); // morning
+		todayInfo.add(periodPanels[1]); // afternoon
+		todayInfo.add(periodPanels[2]); // evening 
+		todayInfo.add(periodPanels[3]); // night
 		
 		todayInfo.setAlignmentX(JFrame.CENTER_ALIGNMENT);
 		todayInfo.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
@@ -138,6 +132,47 @@ public class Today {
 	}
 
 	public void displayAddActivity(JFrame frame, JPanel panel) {
+		PersonalOrganiserGUI.clearContent();
 		
+		JPanel addActivityPanel = new JPanel(new GridLayout(0,1));
+		
+		ButtonGroup group = new ButtonGroup();
+		for (int i = 0; i < timePeriods.length; i++) {
+			JRadioButton button = new JRadioButton(timePeriods[i]);
+			addActivityPanel.add(button);
+			group.add(button);
+		}
+		
+		addActivityPanel.add(new JLabel("Specify activity"));
+		
+		JTextField activity = new JTextField();
+		addActivityPanel.add(activity);
+		
+				
+		int response = JOptionPane.showConfirmDialog(null, addActivityPanel, "Add an activity", 
+				JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+		if (response == JOptionPane.OK_OPTION) {
+			String selectedButton = getSelectedButtonText(group);
+			if (selectedButton == null) {
+				JOptionPane.showMessageDialog(addActivityPanel, "You need to select a period");
+			}
+			else {
+				new TodayData().addActivity(activity.getText(), selectedButton.charAt(0));
+			}
+		}
+		
+		
+		displayTodayInfo(frame, panel);
+	}
+	
+	public String getSelectedButtonText(ButtonGroup buttonGroup) {
+		for (Enumeration<AbstractButton> buttons = buttonGroup.getElements(); buttons.hasMoreElements();) {
+			AbstractButton button = buttons.nextElement();
+			
+			if (button.isSelected()) {
+				return button.getText();
+			}
+		}
+		return null;
 	}
 }

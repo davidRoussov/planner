@@ -95,4 +95,19 @@ public class PersonalOrganiserGUI {
      	frame.setJMenuBar(bar);
 	}
 	
+	public static void clearSubMenu() {
+		
+		try {
+			Today.todayButtons.setVisible(false);
+		} catch(Exception e) {}
+	}
+	
+	public static void clearContent() {
+		
+		try {
+			Today.todayInfo.setVisible(false);
+		} catch (Exception e) {}
+		
+	}
+	
 }

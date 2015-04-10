@@ -112,4 +112,26 @@ public class TodayData {
 	    }
 	}
 
+	public void addActivity(String activity, char periodChar) {
+	    String period = periodChar + "";
+	    period = period.toUpperCase();
+		
+		Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      
+	      statement.executeUpdate("INSERT INTO today (activity, period) VALUES ('" + activity + "','" + period + "');");
+
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	    	e.printStackTrace();
+	      System.exit(0);
+	    }
+	}
+
 }

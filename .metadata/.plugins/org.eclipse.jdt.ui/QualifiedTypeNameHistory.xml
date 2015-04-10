@@ -9,4 +9,16 @@
 <fullyQualifiedTypeName name="java.awt.Dimension"/>
 <fullyQualifiedTypeName name="java.awt.event.KeyListener"/>
 <fullyQualifiedTypeName name="java.awt.Font"/>
+<fullyQualifiedTypeName name="java.util.ArrayList"/>
+<fullyQualifiedTypeName name="outline.TodayData"/>
+<fullyQualifiedTypeName name="java.awt.GridLayout"/>
+<fullyQualifiedTypeName name="javax.swing.border.EmptyBorder"/>
+<fullyQualifiedTypeName name="javax.swing.JLabel"/>
+<fullyQualifiedTypeName name="java.awt.BorderLayout"/>
+<fullyQualifiedTypeName name="javax.swing.JOptionPane"/>
+<fullyQualifiedTypeName name="javax.swing.JRadioButton"/>
+<fullyQualifiedTypeName name="javax.swing.ButtonGroup"/>
+<fullyQualifiedTypeName name="javax.swing.JTextField"/>
+<fullyQualifiedTypeName name="javax.swing.AbstractButton"/>
+<fullyQualifiedTypeName name="java.util.Enumeration"/>
 </qualifiedTypeNameHistroy>

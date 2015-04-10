@@ -1,0 +1,140 @@
+package outline;
+
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.GridLayout;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+
+public class Today {
+	
+	public static JPanel todayButtons;
+	public static JPanel todayInfo;
+	
+	public static String[] options = {"Add", "Edit", "Delete"};
+
+	public void show(JFrame frame, JPanel panel) {
+		if (!checkIfAlreadyDisplayed(panel)) {
+			displayTodayButtons(frame, panel);
+			
+			displayTodayInfo(frame, panel);
+			
+			frame.setVisible(true);
+		}
+	}
+	
+	public boolean checkIfAlreadyDisplayed(JPanel panel) {
+		boolean check = false;
+		
+		Component[] components = panel.getComponents();
+		
+		for (int i = 0; i < components.length; i++) {
+			if (components[i].getName().equals("todayPanel")) {
+				if (components[i].isVisible())
+					check = true;
+				else
+					break;
+			}
+		}
+		
+		return check;
+	}
+	
+	public void displayTodayButtons(JFrame frame, JPanel panel) {
+		todayButtons = new JPanel();
+		todayButtons.setName("todayPanel");
+		todayButtons.setBackground(Style.colorSubMenuBackground);
+		
+		ListenForMouse mouseListener = new ListenForMouse();
+		ListenToAction actionListener = new ListenToAction(frame, panel);
+		
+		for (String name : options) {
+			JButton button = Style.styleSubMenuButtons(name);
+			button.setName(name + "Today");
+			button.addActionListener(actionListener);
+			button.addMouseListener(mouseListener);
+			todayButtons.add(button);
+		}
+			
+		todayButtons.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+		todayButtons.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+		panel.add(todayButtons);
+	}
+	
+	public void displayTodayInfo(JFrame frame, JPanel panel) {
+		String[] allActivities = new TodayData().selectAllActivities();
+		//int numberOfRows = allActivities.length / 2 + 1;
+		
+		todayInfo = new JPanel(new GridLayout(1, 4));
+		todayInfo.setBackground(Style.colorOutputBackground);
+		todayInfo.setBorder(new EmptyBorder(10, 10, 10, 10));
+		
+		String[] timePeriods = {"Morning", "Afternoon", "Evening", "Night"};
+		
+		// creating panels for each period of the day (timePeriods)
+		JPanel[] periodPanels = new JPanel[4];
+		for (int i = 0; i < periodPanels.length; i++) {
+			periodPanels[i] = new JPanel(new GridLayout(4,1));
+			periodPanels[i].setBackground(Style.colorOutputBackground);
+			periodPanels[i].setBorder(new EmptyBorder(10, 10, 10, 10));
+		}
+		
+		// Adding JLabel title to each panel corresponding to the time period
+		for (int i = 0; i < 4; i++) {
+			JLabel title = new JLabel(timePeriods[i]);
+			title.setBorder(new EmptyBorder(3,3,3,3));
+			periodPanels[i].add(title);
+		}
+		
+		for (int i = 0; i < allActivities.length; i += 2) {
+			JLabel activity;
+			if (allActivities[i+1].equals("M")) {
+				activity = new JLabel("- " + allActivities[i]);
+				activity.setBorder(new EmptyBorder(2,2,2,2));
+				periodPanels[0].add(activity);
+			}	
+			else if (allActivities[i+1].equals("A")) {
+				activity = new JLabel("- " + allActivities[i]);
+				activity.setBorder(new EmptyBorder(2,2,2,2));
+				periodPanels[1].add(activity);
+			}	
+			else if (allActivities[i+1].equals("E")) {
+				activity = new JLabel("- " + allActivities[i]);
+				activity.setBorder(new EmptyBorder(2,2,2,2));
+				periodPanels[2].add(activity);
+			}		
+			else if (allActivities[i+1].equals("N")) {
+				activity = new JLabel("- " + allActivities[i]);
+				activity.setBorder(new EmptyBorder(2,2,2,2));
+				periodPanels[3].add(activity);
+			}		
+		}
+		
+		todayInfo.add(periodPanels[0]); // morning
+		todayInfo.add(periodPanels[1]); // afternoon
+		todayInfo.add(periodPanels[2]); // evening 
+		todayInfo.add(periodPanels[3]); // night
+		
+		todayInfo.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+		todayInfo.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+		panel.add(todayInfo);
+		frame.setVisible(true);
+	}
+
+	public void displayAddActivity(JFrame frame, JPanel panel) {
+		PersonalOrganiserGUI.clearContent();
+		
+		JPanel addActivityPanel = new JPanel();
+		
+		int response = JOptionPane.showConfirmDialog(null, addActivityPanel, "Add an activity", 
+				JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+		
+		
+		displayTodayInfo(frame, panel);
+	}
+}
