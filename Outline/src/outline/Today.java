@@ -1,13 +1,11 @@
 package outline;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Enumeration;
-
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -31,6 +29,11 @@ public class Today {
 	
 	private ArrayList<JTextField> changingTodayActivities = new ArrayList<JTextField>();
 	private ArrayList<String> changingTodayPeriods = new ArrayList<String>();
+	
+	private ArrayList<JButton> deleteTodayActivities = new ArrayList<JButton>();
+	private ArrayList<String> deleteTodayPeriods = new ArrayList<String>();
+	
+	JButton updateButton;
 
 	public void show(JFrame frame, JPanel panel) {
 		if (!checkIfAlreadyDisplayed(panel)) {
@@ -48,12 +51,13 @@ public class Today {
 		Component[] components = panel.getComponents();
 		
 		for (int i = 0; i < components.length; i++) {
-			if (components[i].getName().equals("todayPanel")) {
-				if (components[i].isVisible())
-					check = true;
-				else
-					break;
-			}
+
+			try {
+				if (components[i].getName().equals("todayPanel")) {
+					if (components[i].isVisible())
+						check = true;
+				}
+			} catch (Exception e) {}
 		}
 		
 		return check;
@@ -112,27 +116,34 @@ public class Today {
 				changingTodayActivities.add((JTextField) activity);
 				changingTodayPeriods.add(allActivities[i+1]);
 			}
-			else if (outputType.equals("JButton")) 
-				activity = new JButton("- " + allActivities[i]);
+			else if (outputType.equals("JButton")) {
+				activity = Style.styleDeleteButtons("- " + allActivities[i]);
+				deleteTodayActivities.add((JButton) activity);
+				deleteTodayPeriods.add(allActivities[i+1]);
+				final int finali = i;
+				((JButton) activity).addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						new TodayData().deleteActivity(allActivities[finali], allActivities[finali+1]);
+						PersonalOrganiserGUI.clearContent();
+						displayTodayInfo(frame, panel, "JButton");
+						
+					}
+				});
+			}
 			else
 				System.out.println("error: no valid output button type provided (outputType)");
 			
 			if (allActivities[i+1].equals("M")) {
-				
-				activity.setBorder(new EmptyBorder(2,2,2,2));
 				periodPanels[0].add(activity);
 			}	
 			else if (allActivities[i+1].equals("A")) {
-
-				activity.setBorder(new EmptyBorder(2,2,2,2));
 				periodPanels[1].add(activity);
 			}	
 			else if (allActivities[i+1].equals("E")) {
-				activity.setBorder(new EmptyBorder(2,2,2,2));
 				periodPanels[2].add(activity);
 			}		
 			else if (allActivities[i+1].equals("N")) {
-				activity.setBorder(new EmptyBorder(2,2,2,2));
 				periodPanels[3].add(activity);
 			}		
 		}
@@ -195,10 +206,12 @@ public class Today {
 
 	public void displayEditActivity(JFrame frame, JPanel panel) {
 		PersonalOrganiserGUI.clearContent();
+		PersonalOrganiserGUI.clearSubMenu();
+		displayTodayButtons(frame, panel);
 		
 		ListenForMouse mouseListener = new ListenForMouse();
 		
-		JButton updateButton = Style.styleSubMenuButtons("Update");
+		updateButton = Style.styleSubMenuButtons("Update");
 		updateButton.setName("updateToday");
 		updateButton.setForeground(Style.colorUpdateButton);
 		updateButton.addMouseListener(mouseListener);
@@ -228,10 +241,21 @@ public class Today {
 		
 		changingTodayActivities.clear();
 		changingTodayPeriods.clear();
+		removeUpdateButton();
+	}
+		
+	public void removeUpdateButton() {
+		try {
+			updateButton.setVisible(false);
+		} catch (Exception e) {}
 	}
 
 	public void displayDeleteActivity(JFrame frame, JPanel panel) {
-		// TODO Auto-generated method stub
+		removeUpdateButton();
+		PersonalOrganiserGUI.clearContent();
 		
+		displayTodayInfo(frame, panel, "JButton");
+		
+
 	}
 }

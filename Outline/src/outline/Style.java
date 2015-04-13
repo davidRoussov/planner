@@ -41,4 +41,15 @@ public class Style {
 		
 		return button;
 	}
+
+	public static JButton styleDeleteButtons(String name) {
+		
+		JButton button = new JButton(name);
+		button.setFont(font);
+		button.setFocusable(false);
+		button.setFocusPainted(false);
+		button.setContentAreaFilled(false);
+		
+		return button;
+	}
 }

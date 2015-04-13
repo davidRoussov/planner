@@ -159,4 +159,23 @@ public class TodayData {
 	    }	
 	}
 
+	public void deleteActivity(String activity, String period) {
+		Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      
+	      statement.executeUpdate("DELETE FROM today WHERE activity='" + activity + "' AND period='" + period + "';");
+	      
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	    	e.printStackTrace();
+	      System.exit(0);
+	    }	
+	}
+
 }
