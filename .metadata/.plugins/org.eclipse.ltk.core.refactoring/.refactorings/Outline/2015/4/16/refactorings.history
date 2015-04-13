@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename field &apos;changingTodayData&apos; in &apos;outline.Today&apos; to &apos;changingTodayActivities&apos;&#x0D;&#x0A;- Original project: &apos;Outline&apos;&#x0D;&#x0A;- Original element: &apos;outline.Today.changingTodayData&apos;&#x0D;&#x0A;- Renamed element: &apos;outline.Today.changingTodayActivities&apos;&#x0D;&#x0A;- Update references to refactored element&#x0D;&#x0A;- Update textual occurrences in comments and strings" delegate="false" deprecate="false" description="Rename field &apos;changingTodayData&apos;" flags="589826" getter="false" id="org.eclipse.jdt.ui.rename.field" input="/src&lt;outline{Today.java[Today^changingTodayData" name="changingTodayActivities" references="true" setter="false" stamp="1428917488064" textual="false" version="1.0"/>
+</session>

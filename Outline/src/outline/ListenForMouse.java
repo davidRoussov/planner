@@ -31,6 +31,12 @@ public class ListenForMouse implements MouseListener {
 				return;
 			}
 		}
+		
+		if (sourceName.equals("updateToday")) {
+			source.setContentAreaFilled(true);
+			source.setBackground(Style.colorSubMainButtonHighlight);
+			return;
+		}
 
 	}
 
@@ -50,6 +56,11 @@ public class ListenForMouse implements MouseListener {
 				source.setContentAreaFilled(false);
 				return;
 			}
+		}
+		
+		if (sourceName.equals("updateToday")) {
+			source.setContentAreaFilled(false);
+			return;
 		}
 	}
 

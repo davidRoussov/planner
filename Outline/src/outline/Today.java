@@ -3,11 +3,15 @@ package outline;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Enumeration;
 
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -24,12 +28,15 @@ public class Today {
 	private String[] timePeriods =  {"Morning", "Afternoon", "Evening", "Night"};
 	
 	public static String[] options = {"Add", "Edit", "Delete"};
+	
+	private ArrayList<JTextField> changingTodayActivities = new ArrayList<JTextField>();
+	private ArrayList<String> changingTodayPeriods = new ArrayList<String>();
 
 	public void show(JFrame frame, JPanel panel) {
 		if (!checkIfAlreadyDisplayed(panel)) {
 			displayTodayButtons(frame, panel);
 			
-			displayTodayInfo(frame, panel);
+			displayTodayInfo(frame, panel, "JLabel");
 			
 			frame.setVisible(true);
 		}
@@ -73,9 +80,8 @@ public class Today {
 		panel.add(todayButtons);
 	}
 	
-	public void displayTodayInfo(JFrame frame, JPanel panel) {
+	public void displayTodayInfo(JFrame frame, JPanel panel, String outputType) {
 		String[] allActivities = new TodayData().selectAllActivities();
-		//int numberOfRows = allActivities.length / 2 + 1;
 		
 		todayInfo = new JPanel(new GridLayout(1, 4));
 		todayInfo.setBackground(Style.colorOutputBackground);
@@ -97,24 +103,35 @@ public class Today {
 		}
 		
 		for (int i = 0; i < allActivities.length; i += 2) {
-			JLabel activity;
-			if (allActivities[i+1].equals("M")) {
+			
+			JComponent activity = null;
+			if (outputType.equals("JLabel"))
 				activity = new JLabel("- " + allActivities[i]);
+			else if (outputType.equals("JTextField")) {
+				activity = new JTextField("- " + allActivities[i]);
+				changingTodayActivities.add((JTextField) activity);
+				changingTodayPeriods.add(allActivities[i+1]);
+			}
+			else if (outputType.equals("JButton")) 
+				activity = new JButton("- " + allActivities[i]);
+			else
+				System.out.println("error: no valid output button type provided (outputType)");
+			
+			if (allActivities[i+1].equals("M")) {
+				
 				activity.setBorder(new EmptyBorder(2,2,2,2));
 				periodPanels[0].add(activity);
 			}	
 			else if (allActivities[i+1].equals("A")) {
-				activity = new JLabel("- " + allActivities[i]);
+
 				activity.setBorder(new EmptyBorder(2,2,2,2));
 				periodPanels[1].add(activity);
 			}	
 			else if (allActivities[i+1].equals("E")) {
-				activity = new JLabel("- " + allActivities[i]);
 				activity.setBorder(new EmptyBorder(2,2,2,2));
 				periodPanels[2].add(activity);
 			}		
 			else if (allActivities[i+1].equals("N")) {
-				activity = new JLabel("- " + allActivities[i]);
 				activity.setBorder(new EmptyBorder(2,2,2,2));
 				periodPanels[3].add(activity);
 			}		
@@ -162,7 +179,7 @@ public class Today {
 		}
 		
 		
-		displayTodayInfo(frame, panel);
+		displayTodayInfo(frame, panel, "JLabel");
 	}
 	
 	public String getSelectedButtonText(ButtonGroup buttonGroup) {
@@ -174,5 +191,47 @@ public class Today {
 			}
 		}
 		return null;
+	}
+
+	public void displayEditActivity(JFrame frame, JPanel panel) {
+		PersonalOrganiserGUI.clearContent();
+		
+		ListenForMouse mouseListener = new ListenForMouse();
+		
+		JButton updateButton = Style.styleSubMenuButtons("Update");
+		updateButton.setName("updateToday");
+		updateButton.setForeground(Style.colorUpdateButton);
+		updateButton.addMouseListener(mouseListener);
+		
+		updateButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (((Component) e.getSource()).getName().equals("updateToday"))
+						sendChangingData();
+			}
+		});
+		
+		todayButtons.add(updateButton);
+		
+		displayTodayInfo(frame, panel, "JTextField");
+	}
+	
+	public void sendChangingData() {
+		ArrayList<String> allActivities = new ArrayList<String>();
+		
+		for (int i = 0; i < changingTodayActivities.size(); i++) {
+			allActivities.add(changingTodayActivities.get(i).getText().substring(2, changingTodayActivities.get(i).getText().length()));
+			allActivities.add(changingTodayPeriods.get(i));
+		}
+		
+		new TodayData().updateData(allActivities.toArray(new String[allActivities.size()]));
+		
+		changingTodayActivities.clear();
+		changingTodayPeriods.clear();
+	}
+
+	public void displayDeleteActivity(JFrame frame, JPanel panel) {
+		// TODO Auto-generated method stub
+		
 	}
 }

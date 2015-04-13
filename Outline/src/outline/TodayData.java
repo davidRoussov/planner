@@ -134,4 +134,29 @@ public class TodayData {
 	    }
 	}
 
+	public void updateData(String[] allActivities) {
+		
+		Connection connection = null;
+	    Statement statement = null;
+	    try {
+	      Class.forName("org.sqlite.JDBC");
+
+	      connection = DriverManager.getConnection(path);
+	      statement = connection.createStatement();
+	      
+	      statement.executeUpdate("DELETE FROM today");
+	      statement.executeUpdate("DELETE FROM sqlite_sequence WHERE name='today';");
+	      
+	      for (int i = 0; i < allActivities.length; i += 2) {
+	    	  statement.executeUpdate("INSERT INTO today (activity, period) VALUES ('" + allActivities[i] + "','" + allActivities[i+1] + "');");
+	      }
+	      
+	      statement.close();
+	      connection.close();
+	    } catch ( Exception e ) {
+	    	e.printStackTrace();
+	      System.exit(0);
+	    }	
+	}
+
 }

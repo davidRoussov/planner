@@ -13,6 +13,7 @@ public class Style {
 	public static Color colorSubMenuBackground = new Color(192,192,192); // the color for the background of the main output area
 	public static Color colorMainButtonHighlight = new Color(192,192,192); // color of highlight when hovering over main feature button
 	public static Color colorSubMainButtonHighlight = new Color(211,211,211); // color of highlight when hovering over sub menu options
+	public static Color colorUpdateButton = new Color(0,100,0);
 	
 	private static Font font = new Font("Helsinki", Font.BOLD, 12);
 	
