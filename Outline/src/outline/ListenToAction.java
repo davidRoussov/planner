@@ -27,6 +27,8 @@ public class ListenToAction implements ActionListener {
 		else if (sourceName.equals("EditToday")) new Today().displayEditActivity(frame, panel);
 		else if (sourceName.equals("DeleteToday")) new Today().displayDeleteActivity(frame, panel);
 		
+		else if (sourceName.equals("Leaving")) new Leaving().show(frame, panel);
+		
 		else {
 			System.out.println(sourceName);
 		}

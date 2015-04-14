@@ -1,0 +1,35 @@
+package outline;
+
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+public class ListenToAction implements ActionListener {
+	
+	private JFrame frame;
+	private JPanel panel;
+
+	ListenToAction(JFrame frame, JPanel panel) {
+		this.frame = frame;
+		this.panel = panel;
+	}
+
+	public void actionPerformed(ActionEvent e) {
+		String sourceName = ((Component) e.getSource()).getName();
+		
+		if (sourceName.equals("menuItemExit")) System.exit(0);
+
+		else if (sourceName.equals("Today")) new Today().show(frame, panel);
+		else if (sourceName.equals("AddToday")) new Today().displayAddActivity(frame, panel);
+		else if (sourceName.equals("EditToday")) new Today().displayEditActivity(frame, panel);
+		else if (sourceName.equals("DeleteToday")) new Today().displayDeleteActivity(frame, panel);
+		
+		else {
+			System.out.println(sourceName);
+		}
+				
+	}		
+}

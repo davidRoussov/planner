@@ -24,6 +24,7 @@ public class ListenForMouse implements MouseListener {
 			}
 		}
 		
+		
 		for (String todayOption : Today.options) {
 			if (sourceName.equals(todayOption + "Today")) {
 				source.setContentAreaFilled(true);
@@ -36,6 +37,15 @@ public class ListenForMouse implements MouseListener {
 			source.setContentAreaFilled(true);
 			source.setBackground(Style.colorSubMainButtonHighlight);
 			return;
+		}
+		
+		
+		for (String leavingOption : Leaving.options) {
+			if (sourceName.equals(leavingOption + "Leaving")) {
+				source.setContentAreaFilled(true);
+				source.setBackground(Style.colorSubMainButtonHighlight);
+				return;
+			}
 		}
 
 	}
@@ -51,6 +61,7 @@ public class ListenForMouse implements MouseListener {
 			}
 		}
 		
+		
 		for (String todayOption : Today.options) {
 			if (sourceName.equals(todayOption + "Today")) {
 				source.setContentAreaFilled(false);
@@ -61,6 +72,14 @@ public class ListenForMouse implements MouseListener {
 		if (sourceName.equals("updateToday")) {
 			source.setContentAreaFilled(false);
 			return;
+		}
+		
+		
+		for (String leavingOption : Leaving.options) {
+			if (sourceName.equals(leavingOption + "Leaving")) {
+				source.setContentAreaFilled(false);
+				return;
+			}
 		}
 	}
 

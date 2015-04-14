@@ -1,0 +1,52 @@
+package outline;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+public class Leaving {
+	
+	JPanel leavingButtons;
+	
+	String[] options = {"Common", "School", "Grocery shopping"};
+	
+	public void show(JFrame frame, JPanel panel) {
+		
+		PersonalOrganiserGUI.clearContent();
+		PersonalOrganiserGUI.clearSubMenu();
+		
+		displayLeavingButtons(frame, panel);
+		
+		displayCommonLeaving(frame, panel, "JLabel");
+		
+		frame.setVisible(true);
+		
+	}
+
+	private void displayCommonLeaving(JFrame frame, JPanel panel, String string) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void displayLeavingButtons(JFrame frame, JPanel panel) {
+		leavingButtons = new JPanel();
+		leavingButtons.setName("leavingPanel");
+		leavingButtons.setBackground(Style.colorSubMenuBackground);
+		
+		ListenForMouse mouseListener = new ListenForMouse();
+		ListenToAction actionListener = new ListenToAction(frame, panel);
+		
+		for (String name : options) {
+			JButton button = Style.styleSubMenuButtons(name);
+			button.setName(name + "Leaving");
+			button.addActionListener(actionListener);
+			button.addMouseListener(mouseListener);
+			leavingButtons.add(button);
+		}
+			
+		leavingButtons.setAlignmentX(JFrame.CENTER_ALIGNMENT);
+		leavingButtons.setAlignmentY(JFrame.BOTTOM_ALIGNMENT);
+		panel.add(leavingButtons);
+	}
+
+}
