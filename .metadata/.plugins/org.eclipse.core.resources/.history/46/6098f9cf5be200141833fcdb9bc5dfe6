@@ -254,8 +254,7 @@ public class Today {
 		
 		
 		PersonalOrganiserGUI.clearContent();
-		PersonalOrganiserGUI.clearSubMenu();
-		displayTodayButtons(frame, panel);
+		
 		displayTodayInfo(frame, panel, "JButton");
 		
 

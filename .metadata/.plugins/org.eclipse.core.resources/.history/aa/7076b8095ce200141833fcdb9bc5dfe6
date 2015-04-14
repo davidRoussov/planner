@@ -252,10 +252,12 @@ public class Today {
 
 	public void displayDeleteActivity(JFrame frame, JPanel panel) {
 		
+		try {
+			updateButton.setVisible(false);
+		} catch (Exception e) {}
 		
 		PersonalOrganiserGUI.clearContent();
-		PersonalOrganiserGUI.clearSubMenu();
-		displayTodayButtons(frame, panel);
+		
 		displayTodayInfo(frame, panel, "JButton");
 		
 

@@ -36,16 +36,13 @@ public class Today {
 	JButton updateButton;
 
 	public void show(JFrame frame, JPanel panel) {
-
-		PersonalOrganiserGUI.clearContent();
-		PersonalOrganiserGUI.clearSubMenu();
-		
-		displayTodayButtons(frame, panel);
-		
-		displayTodayInfo(frame, panel, "JLabel");
-		
-		frame.setVisible(true);
-
+		if (!checkIfAlreadyDisplayed(panel)) {
+			displayTodayButtons(frame, panel);
+			
+			displayTodayInfo(frame, panel, "JLabel");
+			
+			frame.setVisible(true);
+		}
 	}
 	
 	public boolean checkIfAlreadyDisplayed(JPanel panel) {
@@ -244,18 +241,21 @@ public class Today {
 		
 		changingTodayActivities.clear();
 		changingTodayPeriods.clear();
-		try {
-			updateButton.setVisible(false);
-		} catch(Exception e) {}
+		removeUpdateButton();
 	}
 		
+	public void removeUpdateButton() {
+		try {
+			updateButton.setVisible(false);
+			System.out.println("hi");
+		} catch (Exception e) {}
+	}
 
 	public void displayDeleteActivity(JFrame frame, JPanel panel) {
-		
+		removeUpdateButton();
 		
 		PersonalOrganiserGUI.clearContent();
-		PersonalOrganiserGUI.clearSubMenu();
-		displayTodayButtons(frame, panel);
+		
 		displayTodayInfo(frame, panel, "JButton");
 		
 

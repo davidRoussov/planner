@@ -38,7 +38,6 @@ public class Today {
 	public void show(JFrame frame, JPanel panel) {
 
 		PersonalOrganiserGUI.clearContent();
-		PersonalOrganiserGUI.clearSubMenu();
 		
 		displayTodayButtons(frame, panel);
 		
@@ -254,8 +253,7 @@ public class Today {
 		
 		
 		PersonalOrganiserGUI.clearContent();
-		PersonalOrganiserGUI.clearSubMenu();
-		displayTodayButtons(frame, panel);
+		
 		displayTodayInfo(frame, panel, "JButton");
 		
 
