@@ -1,10 +1,18 @@
 package outline;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.font.TextAttribute;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -42,9 +50,11 @@ public class Leaving {
 		leavingInfo = new JPanel(new GridLayout(numberRows, 1));
 		leavingInfo.setBackground(Style.colorOutputBackground);
 		
-		JLabel commonTitle = new JLabel(association);
-		commonTitle.setBorder(new EmptyBorder(4,8,4,8));
+		JLabel commonTitle = new JLabel(Character.toUpperCase(association.charAt(0)) + association.substring(1));
+		commonTitle.setBorder(new EmptyBorder(30,80,5,5));
 		leavingInfo.add(commonTitle);
+		
+		leavingInfo.add(Box.createRigidArea(new Dimension(2,0)));
 		
 			
 		for (int i = 0; i < allCommon.length; i += 2) {
@@ -53,7 +63,73 @@ public class Leaving {
 				continue;
 			else {
 				JLabel checkItem = new JLabel(allCommon[i]);
-				checkItem.setBorder(new EmptyBorder(10,10,10,10));
+				checkItem.setBorder(new EmptyBorder(1,80,0,0));
+				checkItem.setForeground(Color.BLACK);
+				checkItem.setSize(new Dimension(40,10));
+				checkItem.addMouseListener(new MouseListener() {
+
+					@Override
+					public void mouseClicked(MouseEvent e) {
+						JLabel source = (JLabel) e.getSource();
+						
+						Boolean strikethrough = (Boolean) source.getFont().getAttributes().get(TextAttribute.STRIKETHROUGH);
+						if (strikethrough == null)
+							strikethrough = false;
+						
+						if (!strikethrough) {
+							Font font = source.getFont();
+							@SuppressWarnings("unchecked")
+							Map<TextAttribute, Boolean>  attributes = (Map<TextAttribute, Boolean>) font.getAttributes();
+							attributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON);
+							
+							source.setFont(new Font(attributes));
+						}
+						else {
+							Font font = source.getFont();
+							@SuppressWarnings("unchecked")
+							Map<TextAttribute, Boolean>  attributes = (Map<TextAttribute, Boolean>) font.getAttributes();
+							attributes.put(TextAttribute.STRIKETHROUGH, false);
+							
+							source.setFont(new Font(attributes));
+						}
+					}
+
+					@Override
+					public void mouseEntered(MouseEvent e) {
+						JLabel source = (JLabel) e.getSource();
+						
+						Boolean strikethrough = (Boolean) source.getFont().getAttributes().get(TextAttribute.STRIKETHROUGH);
+						if (strikethrough == null)
+							strikethrough = false;
+						
+						if (source.getForeground().equals(Color.BLACK) && !strikethrough)
+							source.setForeground(Color.GREEN);
+						else
+							source.setForeground(Color.RED);
+					}
+
+					@Override
+					public void mouseExited(MouseEvent e) {
+						JLabel source = (JLabel) e.getSource();
+						
+						if (source.getForeground().equals(Color.GREEN) || source.getForeground().equals(Color.RED))
+							source.setForeground(Color.BLACK);
+						
+					}
+
+					@Override
+					public void mousePressed(MouseEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void mouseReleased(MouseEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+				});
 				leavingInfo.add(checkItem);
 			}		
 		}
