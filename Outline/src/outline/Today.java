@@ -1,11 +1,18 @@
 package outline;
 
 import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Enumeration;
+
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -32,6 +39,9 @@ public class Today {
 	
 	private ArrayList<JButton> deleteTodayActivities = new ArrayList<JButton>();
 	private ArrayList<String> deleteTodayPeriods = new ArrayList<String>();
+	
+	private ArrayList<JLabel> dragTodayActivities = new ArrayList<JLabel>();
+	private ArrayList<String> dragTodayPeriods = new ArrayList<String>();
 	
 	JButton updateButton;
 
@@ -97,7 +107,7 @@ public class Today {
 		// creating panels for each period of the day (timePeriods)
 		JPanel[] periodPanels = new JPanel[4];
 		for (int i = 0; i < periodPanels.length; i++) {
-			periodPanels[i] = new JPanel(new GridLayout(4,1));
+			periodPanels[i] = new JPanel(new GridLayout(10,1));
 			periodPanels[i].setBackground(Style.colorOutputBackground);
 			periodPanels[i].setBorder(new EmptyBorder(10, 10, 10, 10));
 		}
@@ -112,8 +122,76 @@ public class Today {
 		for (int i = 0; i < allActivities.length; i += 2) {
 			
 			JComponent activity = null;
-			if (outputType.equals("JLabel"))
+			if (outputType.equals("JLabel")) {
 				activity = new JLabel("- " + allActivities[i]);
+				int index = i/2 + 1;
+				activity.setName("dragLabel" + index);
+				dragTodayActivities.add((JLabel) activity);
+				dragTodayPeriods.add(allActivities[i+1]);
+				
+				final int finali = i;
+				activity.addMouseListener(new MouseListener() {
+					
+					JLabel firstLabel;
+					
+					@Override
+					public void mouseClicked(MouseEvent e) {					
+						
+					}
+
+					@Override
+					public void mouseEntered(MouseEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void mouseExited(MouseEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void mousePressed(MouseEvent e) {						
+						firstLabel = (JLabel) e.getSource();
+					}
+
+					@Override
+					public void mouseReleased(MouseEvent e) {
+
+						JLabel labelSecond = null;
+						
+						int newx = e.getX();
+						int newy = e.getY() + 30;
+						
+
+						if (allActivities[finali+1].equals("M")) {
+							labelSecond = (JLabel) periodPanels[0].findComponentAt(newx, newy);
+						}	
+						else if (allActivities[finali+1].equals("A")) {
+							labelSecond = (JLabel) periodPanels[1].findComponentAt(newx, newy);
+						}	
+						else if (allActivities[finali+1].equals("E")) {
+							labelSecond = (JLabel) periodPanels[2].findComponentAt(newx, newy);
+						}		
+						else if (allActivities[finali+1].equals("N")) {
+							labelSecond = (JLabel) periodPanels[3].findComponentAt(newx, newy);
+						}
+						
+
+						
+						System.out.println("first:" + firstLabel.getText());
+						System.out.println("second:" + labelSecond.getText());
+						
+						System.out.println(newx + "," + newy);
+						
+
+						
+					}
+					
+				});
+				
+			}
 			else if (outputType.equals("JTextField")) {
 				activity = new JTextField("- " + allActivities[i]);
 				changingTodayActivities.add((JTextField) activity);
