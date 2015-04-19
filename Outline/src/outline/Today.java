@@ -108,8 +108,70 @@ public class Today {
 		JPanel[] periodPanels = new JPanel[4];
 		for (int i = 0; i < periodPanels.length; i++) {
 			periodPanels[i] = new JPanel(new GridLayout(10,1));
+			periodPanels[i].setName(timePeriods[i]);
 			periodPanels[i].setBackground(Style.colorOutputBackground);
 			periodPanels[i].setBorder(new EmptyBorder(10, 10, 10, 10));
+			
+			periodPanels[i].addMouseListener(new MouseListener() {
+
+				JLabel first;
+				String firstPeriod;
+				
+				@Override
+				public void mouseClicked(MouseEvent arg0) {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public void mouseEntered(MouseEvent arg0) {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public void mouseExited(MouseEvent e) {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public void mousePressed(MouseEvent e) {		
+					first = (JLabel) ((JPanel) e.getSource()).findComponentAt(e.getX(), e.getY());
+					firstPeriod = ((JPanel) e.getSource()).getName().substring(0,1);
+				}
+
+				@Override
+				public void mouseReleased(MouseEvent e) {
+					JLabel second = (JLabel) ((JPanel) e.getSource()).findComponentAt(e.getX(), e.getY());
+							
+					int firstIndexActivity = dragTodayActivities.indexOf(first);
+					int secondIndexActivity = dragTodayActivities.indexOf(second);
+					
+					dragTodayActivities.set(firstIndexActivity, second);
+					dragTodayActivities.set(secondIndexActivity, first);
+					
+					String secondPeriod = ((JPanel) e.getSource()).getName().substring(0,1);
+					
+					dragTodayPeriods.set(firstIndexActivity, secondPeriod);
+					dragTodayPeriods.set(secondIndexActivity, firstPeriod);
+					
+					String[] allActivitiesAfterDragging = new String[dragTodayActivities.size() + dragTodayPeriods.size()];
+					int arrayListIndex = 0;
+					for (int j = 0; j < allActivities.length; j += 2) {
+						allActivitiesAfterDragging[j] = dragTodayActivities.get(arrayListIndex).getText().substring(2);
+						allActivitiesAfterDragging[j+1] = dragTodayPeriods.get(arrayListIndex); 
+						arrayListIndex++;
+					}
+					
+					PersonalOrganiserGUI.clearContent();
+					new TodayData().updateData(allActivitiesAfterDragging); // sending changed data to database
+					dragTodayActivities.clear();
+					dragTodayPeriods.clear();
+					displayTodayInfo(frame, panel, "JLabel");
+				}
+				
+			});
 		}
 		
 		// Adding JLabel title to each panel corresponding to the time period
@@ -127,70 +189,7 @@ public class Today {
 				int index = i/2 + 1;
 				activity.setName("dragLabel" + index);
 				dragTodayActivities.add((JLabel) activity);
-				dragTodayPeriods.add(allActivities[i+1]);
-				
-				final int finali = i;
-				activity.addMouseListener(new MouseListener() {
-					
-					JLabel firstLabel;
-					
-					@Override
-					public void mouseClicked(MouseEvent e) {					
-						
-					}
-
-					@Override
-					public void mouseEntered(MouseEvent e) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void mouseExited(MouseEvent e) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void mousePressed(MouseEvent e) {						
-						firstLabel = (JLabel) e.getSource();
-					}
-
-					@Override
-					public void mouseReleased(MouseEvent e) {
-
-						JLabel labelSecond = null;
-						
-						int newx = e.getX();
-						int newy = e.getY() + 30;
-						
-
-						if (allActivities[finali+1].equals("M")) {
-							labelSecond = (JLabel) periodPanels[0].findComponentAt(newx, newy);
-						}	
-						else if (allActivities[finali+1].equals("A")) {
-							labelSecond = (JLabel) periodPanels[1].findComponentAt(newx, newy);
-						}	
-						else if (allActivities[finali+1].equals("E")) {
-							labelSecond = (JLabel) periodPanels[2].findComponentAt(newx, newy);
-						}		
-						else if (allActivities[finali+1].equals("N")) {
-							labelSecond = (JLabel) periodPanels[3].findComponentAt(newx, newy);
-						}
-						
-
-						
-						System.out.println("first:" + firstLabel.getText());
-						System.out.println("second:" + labelSecond.getText());
-						
-						System.out.println(newx + "," + newy);
-						
-
-						
-					}
-					
-				});
-				
+				dragTodayPeriods.add(allActivities[i+1]);				
 			}
 			else if (outputType.equals("JTextField")) {
 				activity = new JTextField("- " + allActivities[i]);
@@ -208,7 +207,8 @@ public class Today {
 						new TodayData().deleteActivity(allActivities[finali], allActivities[finali+1]);
 						PersonalOrganiserGUI.clearContent();
 						displayTodayInfo(frame, panel, "JButton");
-						
+						deleteTodayActivities.clear();
+						deleteTodayPeriods.clear();
 					}
 				});
 			}
@@ -314,7 +314,7 @@ public class Today {
 		ArrayList<String> allActivities = new ArrayList<String>();
 		
 		for (int i = 0; i < changingTodayActivities.size(); i++) {
-			allActivities.add(changingTodayActivities.get(i).getText().substring(2, changingTodayActivities.get(i).getText().length()));
+			allActivities.add(changingTodayActivities.get(i).getText().substring(2));
 			allActivities.add(changingTodayPeriods.get(i));
 		}
 		
